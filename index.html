@@ -1,0 +1,3591 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runner V.073 - Optimized</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            --primary: #00ff88;
+            --primary-dark: #00cc6a;
+            --secondary: #ff6b35;
+            --accent: #00d4ff;
+            --success: #10b981;
+            --warning: #ffa726;
+            --error: #ff1744;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1b1b1d;
+            --bg-tertiary: #000000;
+            --glass: rgba(0, 201, 108, 0.1);
+            --glass-dark: rgba(0, 80, 43, 0.1);
+            --glass-border: rgba(0, 211, 112, 0.25);
+            --text-primary: #ffffff;
+            --text-secondary: #d0d0d0;
+            --text-accent: #00ff88;
+            --shadow-lg: 0 25px 50px -12px rgba(0, 211, 112, 0.10);
+            --shadow-xl: 0 35px 60px -12px rgba(0, 211, 112, 0.15);
+            --border-radius: 12px;
+            --border-radius-lg: 20px;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000000;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            flex-direction: column;
+        }
+        
+        .logo {
+            position: fixed;
+            top: 40px;
+            z-index: 1;
+            color: transparent;
+            font-size: 10px;
+            width: 80px;
+            height: 80px;
+            background: url(logo.svg);
+            background-size: cover;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(48, 131, 54, 0.01) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(58, 157, 66, 0.01) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(39, 96, 43, 0.005) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+        }
+        
+        .cowboy-theme {
+            background: linear-gradient(135deg, #87CEEB 0%, #F4A460 40%, #A17F53 100%);
+        }
+        
+        .Dungeon-theme {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-tertiary) 100%);
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: var(--border-radius-lg);
+        }
+        
+        .ui-panel {
+            position: absolute;
+           background: var(--glass-dark);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            z-index: 10;
+        }
+        
+        #ui {
+            top: 20px;
+            left: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            min-width: 140px;
+            max-width: 240px;
+        }
+        
+        #ui div {
+            margin-bottom: 0px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ui-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .ui-value {
+            color: var(--text-accent);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            font-size:18px;
+        }
+        
+        #centerUI {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .hearts-container {
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            max-width: 120px;
+        }
+        
+        .heart {
+            width: 20px;
+            height: 20px;
+            font-size: 20px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            color: var(--error);
+            filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+        }
+        
+        .heart.empty {
+            display: none;
+        }
+        
+        #highscore {
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            min-width: 120px;
+        }
+        
+        #instructions {
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius-lg);
+            padding: 32px;
+            text-align: center;
+            display: none;
+            z-index: 30;
+            box-shadow: var(--shadow-xl);
+            max-width: 95%;
+            max-height: 95%;
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+        
+        .screen.glass-bg {
+            background: var(--glass);
+        }
+        
+        .screen.dark-bg {
+            background: var(--glass-dark);
+        }
+        
+        .screen::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .screen::-webkit-scrollbar-track {
+            background: var(--glass);
+            border-radius: 3px;
+        }
+        
+        .screen::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 3px;
+        }
+        
+        #themeSelection {
+            width: 600px;
+        }
+        
+        #startScreen {
+            width: 500px;
+        }
+        
+        #levelComplete {
+            width: 550px;
+        }
+        
+        #gameOver {
+            width: 400px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 14px 28px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 8px;
+            min-width: 140px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 255, 136, 0.4);
+            background: linear-gradient(135deg, #00ff88 0%, #00ffaa 100%);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary) 0%, #ff8a50 100%);
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 15px 35px rgba(255, 107, 53, 0.4);
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8a50 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error) 0%, #ff4569 100%);
+            box-shadow: 0 0 20px rgba(255, 23, 68, 0.3);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 15px 35px rgba(255, 23, 68, 0.4);
+            background: linear-gradient(135deg, #ff1744 0%, #ff4569 100%);
+        }
+        
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 12px;
+            min-width: auto;
+        }
+        
+        .theme-selection-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+        }
+        
+        .theme-card {
+            background: var(--glass);
+            backdrop-filter: blur(40px);
+            border: 2px solid var(--glass-border);
+            border-radius: var(--border-radius-lg);
+            padding: 30px;
+            width: 280px;
+            height: 200px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .theme-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .theme-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary);
+        }
+        
+        .theme-card:hover::before {
+            opacity: 0.1;
+        }
+        
+        .theme-card.cowboy {
+            border-color: rgba(255, 171, 64, 0.4);
+        }
+        
+        .theme-card.cowboy:hover {
+            border-color: #ffab40;
+            box-shadow: 0 15px 40px rgba(255, 171, 64, 0.3);
+        }
+        
+        .theme-card.Dungeon {
+            border-color: rgba(0, 212, 255, 0.4);
+        }
+        
+        .theme-card.Dungeon:hover {
+            border-color: var(--accent);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.3);
+        }
+        
+        .theme-preview {
+            font-size: 40px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .theme-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            position: relative;
+            z-index: 1;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .theme-desc {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+        
+        .buff-card {
+            background: var(--glass);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin: 12px 0 0 0;
+            width: 100%;
+            height: auto;
+            display: inline-block;
+            vertical-align: top;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .buff-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .buff-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(6, 182, 212, 0.2);
+        }
+        
+        .buff-card:hover::before {
+            opacity: 0.1;
+        }
+        
+        .buff-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-accent);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .buff-desc {
+            font-size: 11px;
+            line-height: 1.3;
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        h3 {
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .info-card {
+            background: var(--glass);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 12px 0;
+        }
+        
+        .stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .active-buffs {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: var(--glass);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        p {
+            margin: 12px 0;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        ul {
+            padding-left: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        ul li {
+            margin: 8px 0;
+        }
+        
+        .back-btn {
+            position: relative;
+           
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+        }
+        
+        .highlight {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+        
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--glass);
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        
+        .key {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        #muteButton {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: var(--glass-dark);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        #muteButton:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #muteButton.muted {
+            opacity: 0.5;
+        }
+
+        #infoButton {
+            position: absolute;
+            bottom: 20px;
+            left: 74px;
+            background: var(--glass-dark);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        #infoButton:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .bulletcount  {
+                right: 20px;
+    bottom: 20px;
+    padding: 3px 12px;
+    text-align: center;
+    width: 140px;
+    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+        }
+        
+        .bulletcountValue  {
+            color: var(--text-accent);
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            font-size:24px;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1 class="logo">Raabe Studio</h1>
+    <img src="retro.png" style="width: 200px">
+    <div id="gameContainer">
+        <div id="ui" class="ui-panel">
+            <div>
+                <span class="ui-label" id="scoreLabel">Score</span>
+                <span class="ui-value" id="score">0</span>
+            </div>
+            <div>
+                <span class="ui-label" id="levelLabel">Level</span>
+                <span class="ui-value" id="level">1</span>
+            </div>
+          
+            <div class="active-buffs" id="activeBuffs" style="display: none;"></div>
+        </div>
+          <div class="ui-panel bulletcount">
+               <span class="bulletcountValue" id="bullets">0</span>
+                <span class="ui-label" id="bulletsLabel">Bullets</span>
+               
+            </div>
+        <div id="centerUI" class="ui-panel">
+            <div class="ui-label" id="livesLabel">Lives</div>
+            <div class="hearts-container" id="heartsContainer"></div>
+        </div>
+        
+        <div id="muteButton" onclick="toggleMute()">
+            <span id="muteIcon">🔊</span>
+        </div>
+        
+        <div id="infoButton" onclick="toggleInfoOverlay()">
+            <span>ℹ️</span>
+        </div>
+        
+        <div id="highscore" class="ui-panel">
+            <div class="ui-label" id="highscoreLabel">High Score</div>
+            <div class="ui-value" id="highscoreValue">0</div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <!-- Theme Selection Screen -->
+        <div id="themeSelection" class="screen dark-bg" style="display: block;">
+            <h1 class="pulse">🎮 Choose Your Adventure</h1>
+            <div class="theme-selection-container fade-in">
+                 <div class="theme-card Dungeon" onclick="selectTheme('Dungeon')">
+                    <div class="theme-preview">🧟‍♂️⚡🦇</div>
+                    <div class="theme-title">Dungeon's Escape</div>
+                    <div class="theme-desc"> </div>
+                </div>
+                
+                <div class="theme-card cowboy" onclick="selectTheme('cowboy')">
+                    <div class="theme-preview">🤠🏜️⚡</div>
+                    <div class="theme-title">Desert Cowboy</div>
+                    <div class="theme-desc"> </div>
+                </div>
+               
+            </div>
+        </div>
+        
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen dark-bg">
+            <h1 id="gameTitle">🤠 Desert Cowboy Runner</h1>
+            <div class="info-card">
+                <h3 id="gameSubtitle" class="highlight"> </h3>
+                <p id="gameDescription"></p>
+                
+                <div class="controls-grid">
+                    <div class="control-item">
+                        <span class="key">SPACE</span>
+                        <span>Jump (hold for higher)</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key">←</span><span class="key">→</span>
+                        <span>Move left/right</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key">S</span>
+                        <span>Shoot</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key">ESC</span>
+                        <span>Pause</span>
+                    </div>
+                </div>
+                
+                <p id="gameInstructions">Avoid obstacles and shoot enemies for points!</p>
+            </div>
+            <button class="btn" onclick="startGame()" id="startButton">Start Adventure</button>
+            <button class="btn btn-secondary btn-small back-btn" onclick="backToThemeSelection()">← Change Theme</button>
+        </div>
+        
+        <!-- Level Complete Screen -->
+        <div id="levelComplete" class="screen dark-bg">
+            
+            <div>
+                <h3 id="buffChoiceTitle">Choose Your Buff:</h3>
+                <div id="buffButtons"></div>
+            </div>
+        </div>
+        
+        <!-- Pause Screen -->
+        <div id="pauseScreen" class="screen dark-bg">
+                        <button class="btn btn-secondary btn-small back-btn" onclick="backToThemeSelection()">← Change Theme</button>
+
+            <div>
+                <p>Game is paused. Press <span class="key">ESC</span> to resume.</p>
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin: 16px 0;">
+                    <div class="stat-card">
+                        <div class="stat-label" id="pauseScoreLabel">Score</div>
+                        <div class="stat-value" id="pauseScore">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label" id="pauseLevelLabel">Level</div>
+                        <div class="stat-value" id="pauseLevel">1</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label" id="pauseLivesLabel">Lives</div>
+                        <div class="stat-value" id="pauseLives">3</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" onclick="resumeGame()">Resume Game</button>
+            <button class="btn btn-danger" onclick="restartGame()">Restart</button>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOver" class="screen dark-bg">
+            <h2 id="gameOverTitle">💀 Game Over! 💀</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label" id="finalScoreLabel">Final Score</div>
+                    <div class="stat-value" id="finalScore">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Levels Completed</div>
+                    <div class="stat-value" id="levelsCompleted">0</div>
+                </div>
+            </div>
+            <div id="newHighScore" style="display: none;">
+                <h3 class="highlight pulse">🎉 NEW HIGH SCORE! 🎉</h3>
+            </div>
+            <button class="btn" onclick="restartGame()">Play Again</button>
+            <button class="btn btn-secondary btn-small back-btn" onclick="backToThemeSelection()">← Change Theme</button>
+            <p style="margin-top: 16px; font-size: 12px;">Press <span class="key">SPACE</span> to restart</p>
+        </div>
+        
+        <!-- Info Overlay -->
+        <div id="infoOverlay" class="screen dark-bg">
+            <h2>🎮 How to Play</h2>
+            <div>
+                <h3>🎯 Goal</h3>
+                <p>Survive as long as possible by avoiding obstacles and shooting enemies. Complete levels to unlock powerful buffs!</p>
+                
+                <h3>🕹️ Controls</h3>
+                <div class="controls-grid">
+                    <div class="control-item">
+                        <span class="key">SPACE</span>
+                        <span>Jump (hold for higher jumps)</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key">←</span><span class="key">→</span>
+                        <span>Move left/right</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key">S</span>
+                        <span>Shoot bullets/bolts</span>
+                    </div>
+                    <div class="control-item">
+                        <span class="key">ESC</span>
+                        <span>Pause game</span>
+                    </div>
+                </div>
+                
+                <h3>⚔️ Combat & Rewards</h3>
+                <p><strong>Avoiding obstacles:</strong> +10 points each, +5 bullets every 10 avoided</p>
+                <p><strong>Shooting enemies:</strong> Earn points based on enemy type, +1 life every 15 hits</p>
+                <p><strong>Collecting boxes:</strong> +6 bullets/bolts instantly</p>
+                
+                <h3>🎁 Leveling & Buffs</h3>
+                <p><strong>Level progression:</strong> The further, the more rewarding</p>
+                <p><strong>Buff levels:</strong> Every 2nd level, choose from 3 powerful upgrades:</p>
+                <ul style="text-align: left; margin: 10px 0;">
+                    <li><strong>Multi-Shot/Chain Lightning:</strong> Fire 3 projectiles at once</li>
+                    <li><strong>Extra Life/Undead Vigor:</strong> Gain extra life every 10 (15) bullet hits </li>
+                    <li><strong>Double Jump/Shadow Leap:</strong> Unlock aerial mobility</li>
+                </ul>
+                
+                <h3>💡 Strategy Tips</h3>
+                <p>• Hold SPACE for higher jumps to clear tall obstacles</p>
+                <p>• Prioritize shooting over avoiding for better rewards</p>
+                <p>• Save bullets for tough enemies like bosses</p>
+                <p>• Choose buffs based on your playstyle and current needs</p>
+            </div>
+            <button class="btn" onclick="toggleInfoOverlay()">Got it!</button>
+        </div>
+    </div>
+    
+    <div id="instructions">
+        <span id="instructionText"><span class="key">SPACE</span> to Jump • <span class="key">S</span> to Shoot • <span class="key">Arrows</span> to Move • <span class="key">ESC</span> to Pause</span>
+    </div>
+    
+    <script>
+        // Game Constants
+        const GAME_CONSTANTS = {
+            MAX_LEVEL_PROGRESS: 100,
+            GRAVITY: 1.5,
+            LIGHT_GRAVITY: 0.4,
+            JUMP_STRENGTH: -8,
+            DOUBLE_JUMP_STRENGTH: -6,
+            BULLET_SPEED: 10,
+            FPS: 60,
+            PLAYER_MOVE_SPEED: 4,
+            DAMAGE_RESISTANCE_TIME: 60,
+            MAX_JUMP_HOLD_TIME: 90
+        };
+
+        // Game States
+        const GameState = {
+            THEME_SELECTION: 'themeSelection',
+            START: 'start',
+            PLAYING: 'playing',
+            PAUSED: 'paused',
+            LEVEL_COMPLETE: 'levelComplete',
+            GAME_OVER: 'gameOver'
+        };
+
+        // Theme configuration
+        const themes = {
+            cowboy: {
+                name: 'Desert Cowboy',
+                title: '🤠 Desert Cowboy Runner',
+                labels: {
+                    score: 'Score',
+                    level: 'Level', 
+                    bullets: 'Bullets',
+                    lives: 'Lives',
+                    highScore: 'High Score',
+                    enemies: 'Enemies',
+                    gameOver: '💀 Game Over! 💀',
+                    finalScore: 'Final Score'
+                },
+                   buffs: [
+                    { id: 'multiShot', title: '🔥 Multi-Shot', desc: 'Fire 3 bullets at once and deal extra damage per shot' },
+                    { id: 'toughHide', title: '❤️ Tough Hide', desc: 'Gain extra life every 10 (15) bullet hits' },
+                    { id: 'doubleJump', title: '🦅 Sky Walker', desc: 'Unlock double jump ability and increased mobility' }
+                ],
+                enemies: ['cactus', 'rock', 'vulture', 'bull', 'boss', 'prisoner', 'bulletBox'],
+                groundColor: '#A17F53',
+                floorDetailColor: '#D2B48C',
+                startButton: 'Start Adventure'
+            },
+            Dungeon: {
+                name: 'Dungeon\'s Escape',
+                title: '⚡ Dungeon\'s Escape',
+                labels: {
+                    score: 'Souls',
+                    level: 'Floor',
+                    bullets: 'Bolts',
+                    lives: 'Lives',
+                    highScore: 'High Score',
+                    enemies: 'Monsters',
+                    gameOver: '💀 Final Death! 💀',
+                    finalScore: 'Final Souls'
+                },
+                buffs: [
+                    { id: 'chainLightning', title: '⚡ Chain Lightning', desc: 'Unleash 3 bolts at once that arc between enemies' },
+                    { id: 'undeadResilience', title: '🧟 Undead Vigor', desc: 'Gain extra life every 10 (15) bullet hits' },
+                    { id: 'shadowLeap', title: '🌙 Shadow Leap', desc: 'Unlock double jump with ethereal shadow form' }
+                ],
+                enemies: ['bat', 'vampire', 'spider', 'alphaWolf', 'skeleton', 'boltBox'],
+                groundColor: '#2F2F2F',
+                floorDetailColor: '#1A1A1A',
+                startButton: 'Begin Nightmare'
+            }
+        };
+
+        // Cache System
+        class GameCache {
+            constructor() {
+                this.themeCache = null;
+                this.currentThemeName = null;
+            }
+
+            getTheme() {
+                if (this.currentThemeName !== currentTheme) {
+                    this.currentThemeName = currentTheme;
+                    this.themeCache = themes[currentTheme];
+                }
+                return this.themeCache;
+            }
+
+            invalidate() {
+                this.themeCache = null;
+                this.currentThemeName = null;
+            }
+        }
+
+        const gameCache = new GameCache();
+        
+        // Sound System
+        class SoundManager {
+            constructor() {
+                this.audioContext = null;
+                this.isMuted = false;
+            }
+
+            init() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            play(frequency, duration, type = 'sine') {
+                if (!this.audioContext || this.isMuted) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+
+            jump() { this.play(200, 0.2, 'square'); }
+            shoot() { 
+                if (currentTheme === 'Dungeon') {
+                    this.play(800, 0.05, 'sawtooth');
+                    setTimeout(() => this.play(400, 0.05, 'sawtooth'), 50);
+                } else {
+                    this.play(600, 0.05, 'triangle');
+                }
+            }
+            hit() { this.play(150, 0.2, 'triangle'); }
+            death() { 
+                this.play(100, 0.5, 'sawtooth');
+                setTimeout(() => this.play(80, 0.6, 'sawtooth'), 200);
+            }
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                const muteIcon = document.getElementById('muteIcon');
+                const muteButton = document.getElementById('muteButton');
+                
+                if (this.isMuted) {
+                    muteIcon.textContent = '🔇';
+                    muteButton.classList.add('muted');
+                } else {
+                    muteIcon.textContent = '🔊';
+                    muteButton.classList.remove('muted');
+                }
+            }
+        }
+
+        const soundManager = new SoundManager();
+        
+        // Global variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let currentTheme = 'cowboy';
+        let gameState = GameState.THEME_SELECTION;
+        let gameRunning = false;
+        let gameLoop = null;
+        let needsRedraw = true;
+
+        // Game state variables
+        let score = 0;
+        let lives = 4;
+        let maxLives = 4;
+        let gameSpeed = 1;
+        let bullets = 5;
+        let level = 1;
+        let levelProgress = 0;
+        let bulletBoxesFound = 0;
+        let highScore = 0;
+        let postBuffInvulnerability = 0;
+        let postDamageInvulnerability = 0;
+
+        // Game statistics
+        let enemiesDefeated = 0;
+        let obstaclesAvoided = 0;
+        let bulletsHit = 0;
+        let levelsCompleted = 0;
+
+        // Active buffs
+        let activeBuffs = {};
+        let availableBuffs = [];
+
+        // Game objects
+        const player = {
+            x: 120,
+            y: -80,
+            width: 40,
+            height: 40,
+            velocityY: 0,
+            velocityX: 0,
+            jumping: false,
+            grounded: true,
+            jumpHoldTime: 0,
+            isHoldingJump: false,
+            doubleJumpUsed: false,
+            damageResistance: 0,
+            facingDirection: 1
+        };
+
+        // Input handling
+        const keys = {
+            left: false,
+            right: false,
+            space: false,
+            s: false
+        };
+
+        // Game arrays
+        let obstacles = [];
+        let bulletsFired = [];
+        let explosions = [];
+        let environmentElements = [];
+        let bloodParticles = [];
+        let lightningEffects = [];
+        let scorePopups = [];
+        let doubleJumpParticles = [];
+        let obstacleTimer = 0;
+
+        const groundY = 364;
+
+        // Utility Functions
+        function clearArrays() {
+            obstacles.length = 0;
+            bulletsFired.length = 0;
+            explosions.length = 0;
+            bloodParticles.length = 0;
+            lightningEffects.length = 0;
+            scorePopups.length = 0;
+            doubleJumpParticles.length = 0;
+        }
+
+        function isPlayerInvulnerable() {
+            return player.damageResistance > 0 || postBuffInvulnerability > 0 || postDamageInvulnerability > 0;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Global Functions
+
+        let showDropPreview = false;
+
+        document.addEventListener('keydown', e => {
+            if (e.key.toLowerCase() === 'q') showDropPreview = true;
+        });
+        document.addEventListener('keyup', e => {
+            if (e.key.toLowerCase() === 'q') showDropPreview = false;
+        });
+
+
+
+
+
+        window.toggleMute = () => soundManager.toggleMute();
+
+      window.toggleInfoOverlay = function() {
+    const infoOverlay = document.getElementById('infoOverlay');
+    if (infoOverlay.style.display === 'block') {
+        // Closing info overlay
+        infoOverlay.style.display = 'none';
+        // Resume game if it was playing before
+        if (gameState === GameState.PAUSED && gameRunning === false) {
+            resumeGame();
+        }
+    } else {
+        // Opening info overlay
+        // Pause game if currently playing
+        if (gameState === GameState.PLAYING && gameRunning === true) {
+            gameState = GameState.PAUSED;
+            gameRunning = false;
+        }
+        infoOverlay.style.display = 'block';
+    }
+};
+
+        window.selectTheme = function(themeName) {
+            soundManager.init();
+            currentTheme = themeName;
+            gameCache.invalidate();
+            applyTheme();
+            gameState = GameState.START;
+            loadHighScore();
+            hideAllScreens();
+            showScreen('startScreen');
+        };
+
+        window.backToThemeSelection = function() {
+            gameState = GameState.THEME_SELECTION;
+            gameRunning = false;
+            if (gameLoop) {
+                clearInterval(gameLoop);
+                gameLoop = null;
+            }
+            hideAllScreens();
+            showScreen('themeSelection');
+        };
+
+        window.startGame = function() {
+            soundManager.init();
+            if (soundManager.audioContext) {
+                soundManager.audioContext.resume();
+            }
+            gameState = GameState.PLAYING;
+            gameRunning = true;
+            resetGame();
+            hideAllScreens();
+            updateUI();
+            if (!gameLoop) {
+                gameLoop = setInterval(update, 1000 / GAME_CONSTANTS.FPS);
+            }
+        };
+
+        window.restartGame = function() {
+            gameState = GameState.PLAYING;
+            gameRunning = true;
+            resetGame();
+            hideAllScreens();
+            updateUI();
+        };
+
+        window.pauseGame = function() {
+            if (gameState === GameState.PLAYING) {
+                gameState = GameState.PAUSED;
+                gameRunning = false;
+                updatePauseScreen();
+                showScreen('pauseScreen');
+            }
+        };
+
+        window.resumeGame = function() {
+            if (gameState === GameState.PAUSED) {
+                gameState = GameState.PLAYING;
+                gameRunning = true;
+                hideAllScreens();
+            }
+        };
+
+        window.chooseBuff = function(buffType) {
+            const isLifeBuff = (currentTheme === 'cowboy' && buffType === 'toughHide') || 
+                              (currentTheme === 'Dungeon' && buffType === 'undeadResilience');
+            const isJumpBuff = (currentTheme === 'cowboy' && buffType === 'doubleJump') || 
+                              (currentTheme === 'Dungeon' && buffType === 'shadowLeap');
+            const isMultiShotBuff = (currentTheme === 'cowboy' && buffType === 'multiShot') || 
+                                   (currentTheme === 'Dungeon' && buffType === 'chainLightning');
+            
+     if (isLifeBuff) {
+    activeBuffs.extraLife = 1;
+} else if (isJumpBuff) {
+                activeBuffs.doubleJump = 1;
+            } else if (isMultiShotBuff) {
+                activeBuffs.multiShot = 1;
+            }
+            
+            availableBuffs = availableBuffs.filter(buff => buff.id !== buffType);
+            
+            level++;
+            levelProgress = 1;
+            bulletBoxesFound = 0;
+            gameSpeed += 0.6;
+            bullets += 12;
+            
+            postBuffInvulnerability = 120;
+            
+            gameState = GameState.PLAYING;
+            gameRunning = true;
+            hideAllScreens();
+            updateUI();
+        };
+
+        // Theme Functions
+        function applyTheme() {
+            const theme = gameCache.getTheme();
+            const container = document.getElementById('gameContainer');
+            
+            container.className = currentTheme + '-theme';
+            
+            const updates = [
+                ['gameTitle', theme.title],
+                ['startButton', theme.startButton],
+                ['scoreLabel', theme.labels.score],
+                ['levelLabel', theme.labels.level],
+                ['bulletsLabel', theme.labels.bullets],
+                ['livesLabel', theme.labels.lives],
+                ['highscoreLabel', theme.labels.highScore],
+                ['scoreStatLabel', theme.labels.score],
+                ['enemiesStatLabel', theme.labels.enemies],
+                ['gameOverTitle', theme.labels.gameOver],
+                ['finalScoreLabel', theme.labels.finalScore],
+                ['pauseScoreLabel', theme.labels.score],
+                ['pauseLevelLabel', theme.labels.level],
+                ['pauseLivesLabel', theme.labels.lives],
+                ['buffChoiceTitle', currentTheme === 'Dungeon' ? '🔮 Choose Your Dark Power:' : 'Choose Your Buff:']
+            ];
+
+            updates.forEach(([id, text]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = text;
+            });
+
+            initEnvironmentElements();
+            activeBuffs = {};
+            availableBuffs = [...theme.buffs];
+            updateUI();
+        }
+
+        function loadHighScore() {
+            const key = currentTheme === 'cowboy' ? 'cowboyHighScore' : 'DungeonHighScore';
+            highScore = parseInt(localStorage.getItem(key) || '0');
+        }
+
+        function saveHighScore() {
+            const key = currentTheme === 'cowboy' ? 'cowboyHighScore' : 'DungeonHighScore';
+            localStorage.setItem(key, highScore.toString());
+        }
+
+        // Screen Management
+        function hideAllScreens() {
+            const screens = ['themeSelection', 'startScreen', 'levelComplete', 'gameOver', 'pauseScreen', 'newHighScore', 'infoOverlay'];
+            screens.forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+
+        function showScreen(screenId) {
+            hideAllScreens();
+            document.getElementById(screenId).style.display = 'block';
+        }
+
+        // Environment and Effects
+        function initEnvironmentElements() {
+            environmentElements.length = 0;
+            if (currentTheme === 'cowboy') {
+                for (let i = 0; i < 4; i++) {
+                    environmentElements.push({
+                        type: 'cloud',
+                        x: Math.random() * 1000,
+                        y: Math.random() * 100 + 25,
+                        width: 60 + Math.random() * 40,
+                        speed: 0.5 + Math.random() * 0.5
+                    });
+                }
+            } else {
+                for (let i = 0; i < 8; i++) {
+                    environmentElements.push({
+                        type: 'torch',
+                        x: i * 125 + 70,
+                        y: 50 + Math.random() * 35,
+                        flicker: Math.random() * 20
+                    });
+                }
+            }
+        }
+
+        function createLightningEffect(x, y) {
+            if (currentTheme === 'Dungeon') {
+                lightningEffects.push({
+                    x: x,
+                    y: y,
+                    life: 15,
+                    maxLife: 15,
+                    branches: Math.floor(Math.random() * 3) + 2
+                });
+            }
+        }
+
+        function createBloodParticles(x, y) {
+            for (let i = 0; i < 8; i++) {
+                bloodParticles.push({
+                    x: x + Math.random() * 20 - 10,
+                    y: y + Math.random() * 20 - 10,
+                    velocityX: (Math.random() - 0.5) * 6,
+                    velocityY: (Math.random() - 0.5) * 6 - 2,
+                    life: 30,
+                    maxLife: 30
+                });
+            }
+        }
+
+        function createScorePopup(x, y, points) {
+            scorePopups.push({
+                x: x,
+                y: y,
+                points: points,
+                life: 60,
+                maxLife: 60
+            });
+        }
+
+        function createDoubleJumpParticles(x, y) {
+            const particleCount = currentTheme === 'cowboy' ? 12 : 8;
+            
+            for (let i = 0; i < particleCount; i++) {
+                if (currentTheme === 'cowboy') {
+                    // Dust cloud particles
+                    doubleJumpParticles.push({
+                        x: x + Math.random() * 40 - 20,
+                        y: y + 30 + Math.random() * 10,
+                        velocityX: (Math.random() - 0.5) * 4,
+                        velocityY: Math.random() * 2 + 1,
+                        life: 25,
+                        maxLife: 25,
+                        size: 2 + Math.random() * 3
+                    });
+                } else {
+                    // Shadow energy particles
+                    doubleJumpParticles.push({
+                        x: x + 20 + Math.random() * 20 - 10,
+                        y: y + 20 + Math.random() * 20 - 10,
+                        velocityX: (Math.random() - 0.5) * 6,
+                        velocityY: (Math.random() - 0.5) * 6,
+                        life: 30,
+                        maxLife: 30,
+                        size: 1 + Math.random() * 2
+                    });
+                }
+            }
+        }
+
+        // Game Logic
+        function resetGame() {
+            score = 0;
+            lives = 4;
+            maxLives = 4;
+            bullets = 5;
+            level = 1;
+            levelProgress = 0;
+            gameSpeed = 2;
+            enemiesDefeated = 0;
+            obstaclesAvoided = 0;
+            bulletsHit = 0;
+            bulletBoxesFound = 0;
+            levelsCompleted = 0;
+            postBuffInvulnerability = 0;
+            postDamageInvulnerability = 0;
+
+            player.x = 120;
+            player.y = 73;
+            player.velocityY = 0;
+            player.velocityX = 0;
+            player.jumping = false;
+            player.grounded = true;
+            player.jumpHoldTime = 0;
+            player.isHoldingJump = false;
+            player.doubleJumpUsed = false;
+            player.damageResistance = 0;
+            player.facingDirection = 1;
+
+            clearArrays();
+            obstacleTimer = 0;
+            activeBuffs = {};
+            
+            const theme = gameCache.getTheme();
+            availableBuffs = [...theme.buffs];
+            
+            initEnvironmentElements();
+            needsRedraw = true;
+        }
+
+        function updateHighScore() {
+            if (score > highScore) {
+                highScore = score;
+                saveHighScore();
+                document.getElementById('newHighScore').style.display = 'block';
+            }
+            document.getElementById('highscoreValue').textContent = highScore;
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('bullets').textContent = bullets;
+            document.getElementById('highscoreValue').textContent = highScore;
+            
+            updateHeartsDisplay();
+            updateActiveBuffsDisplay();
+            
+            if (gameState === GameState.LEVEL_COMPLETE) {
+                updateBuffButtons();
+            }
+        }
+
+        function updateHeartsDisplay() {
+            const heartsContainer = document.getElementById('heartsContainer');
+            heartsContainer.innerHTML = '';
+            for (let i = 0; i < maxLives; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart' + (i >= lives ? ' empty' : '');
+                heart.textContent = '♥';
+                heartsContainer.appendChild(heart);
+            }
+        }
+
+        function updateActiveBuffsDisplay() {
+            const buffDisplay = document.getElementById('activeBuffs');
+            let buffText = '';
+            
+            if (activeBuffs.multiShot > 0) {
+                buffText += currentTheme === 'cowboy' ? '🔥 Multi-Shot ' : '⚡ Chain Lightning ';
+            }
+            if (activeBuffs.extraLife > 0) {
+                buffText += currentTheme === 'cowboy' ? '❤️ Tough Hide ' : '🧟 Undead Vigor ';
+            }
+            if (activeBuffs.doubleJump > 0) {
+                buffText += currentTheme === 'cowboy' ? '🦅 Sky Walker ' : '🌙 Shadow Leap ';
+            }
+            
+            if (buffText) {
+                buffDisplay.textContent = '' + buffText;
+                buffDisplay.style.display = 'block';
+            } else {
+                buffDisplay.style.display = 'none';
+            }
+        }
+
+        function updatePauseScreen() {
+            document.getElementById('pauseScore').textContent = score;
+            document.getElementById('pauseLevel').textContent = level;
+            document.getElementById('pauseLives').textContent = lives;
+        }
+
+        function updateBuffButtons() {
+            const buffButtonsContainer = document.getElementById('buffButtons');
+            if (!buffButtonsContainer) return;
+            
+            buffButtonsContainer.innerHTML = '';
+            
+            availableBuffs.forEach(buff => {
+                const button = document.createElement('div');
+                button.className = 'buff-card';
+                button.onclick = () => chooseBuff(buff.id);
+                
+                const title = document.createElement('div');
+                title.className = 'buff-title';
+                title.textContent = buff.title;
+                
+                const desc = document.createElement('div');
+                desc.className = 'buff-desc';
+                desc.textContent = buff.desc;
+                
+                button.appendChild(title);
+                button.appendChild(desc);
+                buffButtonsContainer.appendChild(button);
+            });
+        }
+
+        // Player Movement and Actions
+        function startJump() {
+            if (gameState === GameState.START) {
+                startGame();
+                return;
+            }
+            if (gameState === GameState.GAME_OVER) {
+                restartGame();
+                return;
+            }
+            if (!gameRunning) return;
+            
+            if (player.grounded) {
+                player.velocityY = GAME_CONSTANTS.JUMP_STRENGTH;
+                player.jumping = true;
+                player.grounded = false;
+                player.isHoldingJump = true;
+                player.jumpHoldTime = 0;
+                player.doubleJumpUsed = false;
+                soundManager.jump();
+            } else if (activeBuffs.doubleJump > 0 && !player.doubleJumpUsed) {
+                player.velocityY = GAME_CONSTANTS.DOUBLE_JUMP_STRENGTH;
+                player.doubleJumpUsed = true;
+                player.isHoldingJump = true;
+                player.jumpHoldTime = 0;
+                createDoubleJumpParticles(player.x, player.y);
+                soundManager.jump();
+            }
+        }
+
+        function stopJump() {
+            player.isHoldingJump = false;
+        }
+
+        function shoot() {
+            if (!gameRunning || bullets <= 0) return;
+            
+            const canUseMultiShot = activeBuffs.multiShot > 0 && bullets >= 3;
+            const bulletCount = canUseMultiShot ? 3 : 1;
+            const enhanced = canUseMultiShot;
+            
+            for (let i = 0; i < bulletCount; i++) {
+                const offsetY = bulletCount > 1 ? (i - 1) * 8 : 0;
+                const startX = player.facingDirection === 1 ? player.x + player.width : player.x;
+                const bulletSpeed = GAME_CONSTANTS.BULLET_SPEED * player.facingDirection;
+                
+                bulletsFired.push({
+                    x: startX,
+                    y: player.y + player.height / 1.5 + offsetY,
+                    speed: bulletSpeed,
+                    enhanced: enhanced,
+                    direction: player.facingDirection
+                });
+            }
+            
+            bullets -= bulletCount;
+            soundManager.shoot();
+        }
+
+        // Update Functions
+        function updatePlayer() {
+            // Handle horizontal movement
+            if (keys.left && player.x > 0) {
+                player.velocityX = -GAME_CONSTANTS.PLAYER_MOVE_SPEED;
+                player.facingDirection = -1;
+            } else if (keys.right && player.x < canvas.width - player.width) {
+                player.velocityX = GAME_CONSTANTS.PLAYER_MOVE_SPEED;
+                player.facingDirection = 1;
+            } else {
+                player.velocityX = 0;
+            }
+            
+            player.x += player.velocityX;
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            
+            // Handle jump hold mechanic
+            if (player.isHoldingJump && player.jumpHoldTime < GAME_CONSTANTS.MAX_JUMP_HOLD_TIME && player.velocityY < 0) {
+                const holdStrength = 1 - (player.jumpHoldTime / GAME_CONSTANTS.MAX_JUMP_HOLD_TIME);
+                player.velocityY -= 0.3 * holdStrength;
+                player.jumpHoldTime++;
+            }
+            
+            // Apply gravity
+            const gravity = player.velocityY < 0 ? GAME_CONSTANTS.LIGHT_GRAVITY : GAME_CONSTANTS.GRAVITY;
+            player.velocityY += gravity;
+            player.y += player.velocityY;
+            
+            // Ground collision
+            if (player.y >= groundY - player.height) {
+                player.y = groundY - player.height;
+                player.velocityY = 0;
+                player.jumping = false;
+                player.grounded = true;
+                player.isHoldingJump = false;
+                player.jumpHoldTime = 0;
+                player.doubleJumpUsed = false;
+            }
+            
+            // Update invulnerability timers
+            if (player.damageResistance > 0) {
+                player.damageResistance--;
+            }
+            if (postBuffInvulnerability > 0) {
+                postBuffInvulnerability--;
+            }
+            if (postDamageInvulnerability > 0) {
+                postDamageInvulnerability--;
+            }
+        }
+
+        function calculateSpawnTimer(baseTimer, minTimer, level) {
+            const maxReductionPercent = 0.65;
+            const maxReduction = baseTimer * maxReductionPercent;
+            
+            const reductionProgress = 1 - Math.exp(-level * 0.25);
+            const totalReduction = maxReduction * reductionProgress;
+            
+            const finalTimer = Math.floor(baseTimer - totalReduction);
+            
+            const effectiveMinTimer = Math.max(minTimer, Math.floor(baseTimer * 0.25));
+            return Math.max(finalTimer, effectiveMinTimer);
+        }
+
+        function spawnObstacle() {
+            if (obstacleTimer <= 0) {
+                const obstacleType = Math.random();
+                
+                // Calculate dynamic spawn chances based on level
+                const bossChance = Math.min(0.05 + (level * 0.020), 0.3);
+                const flyingChance = bossChance + Math.min(0.35, 0.08 + (level * 0.01));
+                const mediumChance = flyingChance + Math.min(0.30, 0.07 + (level * 0.008));
+                const humanChance = mediumChance + Math.min(0.10, 0.06 + (level * 0.006));
+                const staticChance = humanChance + 0.5;
+                
+                if (obstacleType < 0.08 && bulletBoxesFound < 2) {
+                    const boxType = currentTheme === 'cowboy' ? 'bulletBox' : 'boltBox';
+                    obstacles.push(createObstacle(boxType, canvas.width, groundY - 16, 24, 16));
+                    obstacleTimer = calculateSpawnTimer(100, 40, level);
+                    bulletBoxesFound++;
+                } else if (obstacleType < bossChance) {
+                    const bossType = currentTheme === 'cowboy' ? 'boss' : 'alphaWolf';
+                    const jumpFrequency = Math.max(60 - (level * 8), 20);
+                    const boss = createObstacle(bossType, canvas.width, groundY - 50, 63, 55);
+                    boss.health = 6;
+                    boss.maxHealth = 6;
+                    boss.verticalMovement = 0;
+                    boss.jumpTimer = Math.random() * jumpFrequency + jumpFrequency/2;
+                    obstacles.push(boss);
+                    obstacleTimer = calculateSpawnTimer(180, 50, level);
+                } else if (obstacleType < flyingChance) {
+                    const flyingType = currentTheme === 'cowboy' ? 'vulture' : 'bat';
+                    obstacles.push(createObstacle(flyingType, canvas.width, 140 + Math.random() * 140, 42, 20));
+                    obstacleTimer = calculateSpawnTimer(100, 20, level);
+                } else if (obstacleType < mediumChance) {
+                    const mediumType = currentTheme === 'cowboy' ? 'bull' : 'spider';
+                    const medium = createObstacle(mediumType, canvas.width, groundY - 20, 42, 40);
+                    medium.health = 2;
+                    medium.maxHealth = 2;
+                    obstacles.push(medium);
+                    obstacleTimer = calculateSpawnTimer(120, 30, level);
+               } else if (obstacleType < humanChance) {
+                    const humanType = currentTheme === 'cowboy' ? 'prisoner' : 'vampire';
+                    const human = createObstacle(humanType, canvas.width, groundY - 46, 40, 42);
+                    human.health = 2; // Both prisoners and vampires now have 2 health
+                    human.maxHealth = human.health;
+                    obstacles.push(human);
+                    obstacleTimer = calculateSpawnTimer(100, 20, level);
+                } else if (obstacleType < staticChance) {
+                    const staticType = currentTheme === 'cowboy' ? 'cactus' : 'skeleton';
+                    const height = currentTheme === 'cowboy' ? 50 : 40;
+                    obstacles.push(createObstacle(staticType, canvas.width, groundY - height, 28, height));
+                    obstacleTimer = calculateSpawnTimer(80, 20, level);
+                } else {
+                    obstacles.push(createObstacle('rock', canvas.width, groundY - 28, 30, 35));
+                    obstacleTimer = calculateSpawnTimer(70, 15, level);
+                }
+            }
+            obstacleTimer--;
+        }
+
+        function createObstacle(type, x, y, width, height) {
+            return {
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                type: type,
+                passed: false,
+                health: 1,
+                maxHealth: 1,
+                animationTime: Math.random() * 1000
+            };
+        }
+
+        function updateObstacles() {
+            const speed = gameSpeed;
+            
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                obstacle.x -= speed;
+                
+                obstacle.animationTime += 16;
+                
+                // Special movement patterns
+                if (obstacle.type === 'vulture' || obstacle.type === 'bat') {
+                    obstacle.y += Math.sin(Date.now() * 0.01 + i) * 1.5;
+                } else if (obstacle.type === 'boss' || obstacle.type === 'alphaWolf') {
+                    if (obstacle.jumpTimer !== undefined) {
+                        obstacle.jumpTimer--;
+                        if (obstacle.jumpTimer <= 0) {
+                            obstacle.verticalMovement = -15;
+                            obstacle.jumpTimer = Math.random() * 240 + 180;
+                        }
+                        
+                        obstacle.y += obstacle.verticalMovement;
+                        obstacle.verticalMovement += 0.8;
+                        
+                        if (obstacle.y >= groundY - obstacle.height) {
+                            obstacle.y = groundY - obstacle.height;
+                            obstacle.verticalMovement = 0;
+                        }
+                    }
+                }
+                
+                // Check if passed player
+                if (!obstacle.passed && obstacle.x + obstacle.width < player.x) {
+                    obstacle.passed = true;
+                    score += 10;
+                    obstaclesAvoided++;
+                    levelProgress += 2;
+                    
+                    if (obstaclesAvoided % 10 === 0) {
+                        bullets += 5;
+                    }
+                }
+                
+                // Remove off-screen obstacles
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacles.splice(i, 1);
+                }
+            }
+        }
+
+                function getItemSymbol(item) {
+            switch (item) {
+                case 'bulletBox': return '🔫';
+                case 'boltBox': return '⚡';
+                case 'healthPack': return '💊';
+                default: return '🎁';
+            }
+                }
+
+
+
+        const DROP_TABLE = {
+            boss: [
+                { item: 'bulletBox', chance: 0.5 }
+            ],
+            alphaWolf: [
+                { item: 'boltBox', chance: 0.5 }
+            ],
+            vulture: [
+                { item: 'bulletBox', chance: 0.4 }
+            ],
+            bat: [
+                { item: 'boltBox', chance: 0.4 }
+            ],
+            vampire: [
+                { item: 'boltBox', chance: 0.15 },
+                { item: 'healthPack', chance: 0.05 }
+            ],
+            bull: [
+                { item: 'bulletBox', chance: 0.2 }
+            ]
+        };
+
+        function updateBullets() {
+for (let i = 0; i < bulletsFired.length; i++) {
+    const bullet = bulletsFired[i];
+
+    for (let j = obstacles.length - 1; j >= 0; j--) {
+        const obstacle = obstacles[j];
+
+        if (showDropPreview) {
+            const dropInfo = (DROP_TABLE[obstacle.type] || [])
+                .map(drop => `${getItemSymbol(drop.item)} ${Math.round(drop.chance * 100)}%`)
+                .join(', ');
+            const scoreInfo = `10/${getBasePoints(obstacle.type)}`;
+
+            ctx.fillStyle = 'white';
+            ctx.font = '10px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${dropInfo}  ${scoreInfo}`, obstacle.x + obstacle.width / 2, obstacle.y - 6);
+        }
+
+        if (bullet.x < obstacle.x + obstacle.width &&
+            bullet.x + 8 > obstacle.x &&
+            bullet.y < obstacle.y + obstacle.height &&
+            bullet.y + 4 > obstacle.y) {
+
+            const damage = bullet.enhanced ? 2 : 1;
+            obstacle.health -= damage;
+
+            if (currentTheme === 'Dungeon') {
+                createLightningEffect(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2);
+            } else {
+                explosions.push({
+                    x: obstacle.x + obstacle.width / 2,
+                    y: obstacle.y + obstacle.height / 2,
+                    frame: 0
+                });
+            }
+
+            bulletsFired.splice(i, 1);
+            i--; // ← Wichtig, weil du ein Element entfernt hast
+
+            if (obstacle.health <= 0) {
+                handleObstacleDestroyed(obstacle, j);
+            }
+
+            break; // ✅ Jetzt korrekt erlaubt
+        }
+    }
+
+    // Remove off-screen bullets
+    if (bullet && (bullet.x > canvas.width || bullet.x < -8)) {
+        bulletsFired.splice(i, 1);
+        i--; // Decrement i after removal
+    }
+}
+}
+
+
+
+                    
+                    if (bullet.x < obstacle.x + obstacle.width &&
+                        bullet.x + 8 > obstacle.x &&
+                        bullet.y < obstacle.y + obstacle.height &&
+                        bullet.y + 4 > obstacle.y) {
+                        
+                        const damage = bullet.enhanced ? 2 : 1;
+                        obstacle.health -= damage;
+                        
+                        if (currentTheme === 'Dungeon') {
+                            createLightningEffect(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2);
+                        } else {
+                            explosions.push({
+                                x: obstacle.x + obstacle.width / 2,
+                                y: obstacle.y + obstacle.height / 2,
+                                frame: 0
+                            });
+                        }
+                        
+                        bulletsFired.splice(i, 1);
+                        
+                        if (obstacle.health <= 0) {
+                            handleObstacleDestroyed(obstacle, j);
+                        }
+                        break;
+                    }
+                }
+                
+                // Remove off-screen bullets
+                if (bullet && (bullet.x > canvas.width || bullet.x < -8)) {
+                    bulletsFired.splice(i, 1);
+                }
+            }
+        }
+
+        function handleObstacleDestroyed(obstacle, index) {
+            const basePoints = getBasePoints(obstacle.type);
+            const levelBonus = (level - 1) * 5;
+            const points = basePoints + levelBonus;
+            
+            score += points;
+            createScorePopup(obstacle.x + obstacle.width/2, obstacle.y, points);
+            
+            obstacles.splice(index, 1);
+            enemiesDefeated++;
+            bulletsHit++;
+            levelProgress += 3;
+            soundManager.hit();
+
+            // Drops prüfen
+            const drops = DROP_TABLE[obstacle.type];
+            if (drops) {
+                drops.forEach(drop => {
+                    if (Math.random() < drop.chance) {
+                        const dropX = obstacle.x;
+                        const dropY = groundY - 16;
+                        const box = createObstacle(drop.item, dropX, dropY, 24, 16);
+                        obstacles.push(box);
+                    }
+                });
+            }
+
+            
+          const bulletsNeeded = activeBuffs.extraLife > 0 ? 10 : 15;
+            if (bulletsHit >= bulletsNeeded) {
+                lives++;
+                if (lives > maxLives) maxLives = lives;
+                bulletsHit = 0;
+            }
+        }
+
+        function getBasePoints(obstacleType) {
+            const pointsMap = {
+                'boss': 100, 'alphaWolf': 100,
+                'bull': 50, 'spider': 50,
+                'vampire': 25, 'prisoner': 25,
+                'vulture': 40, 'bat': 40,
+                'skeleton': 20, 'cactus': 15,
+                'rock': 10
+            };
+            return pointsMap[obstacleType] || 10;
+        }
+
+        function updateExplosions() {
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                explosions[i].frame++;
+                if (explosions[i].frame > 15) {
+                    explosions.splice(i, 1);
+                }
+            }
+        }
+
+        function updateEnvironmentElements() {
+            const speed = gameSpeed;
+            for (const element of environmentElements) {
+                if (element.type === 'cloud') {
+                    element.x -= element.speed;
+                    if (element.x + element.width < 0) {
+                        element.x = canvas.width;
+                        element.y = Math.random() * 100 + 25;
+                    }
+                } else if (element.type === 'torch') {
+                    element.flicker += 0.1;
+                    element.x -= speed * 0.75;
+                    if (element.x < -20) {
+                        element.x = canvas.width + 20;
+                        element.y = 50 + Math.random() * 35;
+                    }
+                }
+            }
+        }
+
+        function updateEffects() {
+            // Update blood particles
+            for (let i = bloodParticles.length - 1; i >= 0; i--) {
+                const particle = bloodParticles[i];
+                particle.x += particle.velocityX;
+                particle.y += particle.velocityY;
+                particle.velocityY += 0.2;
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    bloodParticles.splice(i, 1);
+                }
+            }
+
+            // Update lightning effects
+            for (let i = lightningEffects.length - 1; i >= 0; i--) {
+                const effect = lightningEffects[i];
+                effect.life--;
+                
+                if (effect.life <= 0) {
+                    lightningEffects.splice(i, 1);
+                }
+            }
+
+            // Update score popups
+            for (let i = scorePopups.length - 1; i >= 0; i--) {
+                const popup = scorePopups[i];
+                popup.y -= 1;
+                popup.life--;
+                
+                if (popup.life <= 0) {
+                    scorePopups.splice(i, 1);
+                }
+            }
+
+            // Update double jump particles
+            for (let i = doubleJumpParticles.length - 1; i >= 0; i--) {
+                const particle = doubleJumpParticles[i];
+                particle.x += particle.velocityX;
+                particle.y += particle.velocityY;
+                particle.velocityY += 0.1; // Slight gravity
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    doubleJumpParticles.splice(i, 1);
+                }
+            }
+        }
+
+        function checkCollisions() {
+            if (isPlayerInvulnerable()) return;
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                if (player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y) {
+                    
+                    if (obstacle.type === 'bulletBox' || obstacle.type === 'boltBox') {
+                        bullets += 6;
+                        const label = currentTheme === 'cowboy' ? '+6 Bullets' : '+6 Bolts';
+                        createScorePopup(obstacle.x + obstacle.width/2, obstacle.y, label);
+                        obstacles.splice(i, 1);
+                        continue;
+                    }
+
+
+                   if (obstacle.type === 'healthPack') {
+                        lives++;
+                        if (lives > maxLives) maxLives = lives;
+                        createScorePopup(obstacle.x + obstacle.width/2, obstacle.y, '+1 Life');
+                        obstacles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    lives--;
+                    createBloodParticles(player.x + player.width/2, player.y + player.height/2);
+                    
+                    postDamageInvulnerability = 60;
+                    player.damageResistance = GAME_CONSTANTS.DAMAGE_RESISTANCE_TIME;
+                    
+                    bulletsHit = 0;
+                    obstacles.splice(i, 1);
+                    soundManager.hit();
+                    
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                    break;
+                }
+            }
+        }
+
+        function checkLevelComplete() {
+            if (levelProgress >= GAME_CONSTANTS.MAX_LEVEL_PROGRESS) {
+                levelsCompleted++;
+                
+                const isBuffLevel = level % 2 === 0;
+                const hasAvailableBuffs = availableBuffs.length > 0;
+                
+                if (isBuffLevel && hasAvailableBuffs) {
+                    gameState = GameState.LEVEL_COMPLETE;
+                    gameRunning = false;
+                    
+                    const levelScoreEl = document.getElementById('levelScore');
+                    const enemiesDefeatedEl = document.getElementById('enemiesDefeated');
+                    
+                    if (levelScoreEl) levelScoreEl.textContent = score;
+                    if (enemiesDefeatedEl) enemiesDefeatedEl.textContent = enemiesDefeated;
+                    
+                    showScreen('levelComplete');
+                } else {
+                    level++;
+                    levelProgress = 1;
+                    bulletBoxesFound = 0;
+                    gameSpeed += 0.4;
+                    bullets += 12;
+                }
+            }
+        }
+
+        function gameOver() {
+            gameState = GameState.GAME_OVER;
+            gameRunning = false;
+            
+            updateHighScore();
+            soundManager.death();
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('levelsCompleted').textContent = levelsCompleted;
+            
+            showScreen('gameOver');
+        }
+
+        // Drawing Functions
+        function drawPlayer(x, y, facingLeft = false, isDead = false) {
+            const isInvulnerable = postBuffInvulnerability > 0 || postDamageInvulnerability > 0;
+            
+            if (isInvulnerable) {
+                const blinkFrequency = 8;
+                const activeInvulnerability = Math.max(postBuffInvulnerability, postDamageInvulnerability);
+                
+                if (Math.floor(activeInvulnerability / blinkFrequency) % 2 === 0) {
+                    return;
+                }
+            }
+            
+            if (currentTheme === 'cowboy') {
+                drawCowboy(x, y, facingLeft, isDead);
+            } else {
+                drawDungeon(x, y, facingLeft, isDead);
+            }
+        }
+
+
+            function drawHealthPack(x, y, width, height, animationTime = 0) {
+        const offsetY = Math.sin(animationTime * 0.03) * 2;
+
+        ctx.save();
+
+        // Schatten
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = 'black';
+        ctx.fillRect(x + 3, y + offsetY + 3, width, height);
+        ctx.globalAlpha = 1;
+
+        // Grundform
+        ctx.fillStyle = '#ff4d4d';
+        ctx.fillRect(x, y + offsetY, width, height);
+
+        // Weißes Kreuz
+        ctx.fillStyle = 'white';
+        ctx.fillRect(x + width / 4, y + offsetY + height / 2 - 2, width / 2, 4);
+        ctx.fillRect(x + width / 2 - 2, y + offsetY + height / 4, 4, height / 2);
+
+        ctx.restore();
+            }
+
+
+
+
+
+
+      function drawCowboy(x, y, facingLeft = false, isDead = false) {
+    ctx.save();
+    
+    if (facingLeft) {
+        ctx.scale(-1, 1);
+        x = -x - player.width;
+    }
+    
+    // Classic Cowboy Hat with curved brim and proper crown
+    ctx.fillStyle = '#654321'; // Dark brown leather
+    
+    // Hat brim (curved/upturned at sides)
+    ctx.fillRect(x + 2, y + 8, 36, 4); // Main brim
+    ctx.fillRect(x + 4, y + 6, 4, 4); // Left brim upturn
+    ctx.fillRect(x + 32, y + 6, 4, 4); // Right brim upturn
+    ctx.fillRect(x + 6, y + 4, 2, 4); // Left brim curve
+    ctx.fillRect(x + 32, y + 4, 2, 4); // Right brim curve
+    
+    // Hat crown (main body)
+    ctx.fillStyle = '#8B4513'; // Lighter brown for crown
+    ctx.fillRect(x + 10, y - 2, 20, 12); // Main crown body
+    ctx.fillRect(x + 12, y - 4, 16, 8); // Crown top
+    
+    // Crown shaping (classic cowboy indentations)
+    ctx.fillStyle = '#654321'; // Shadow/indent color
+    ctx.fillRect(x + 15, y - 3, 3, 8); // Left front crease
+    ctx.fillRect(x + 22, y - 3, 3, 8); // Right front crease
+    ctx.fillRect(x + 18, y - 4, 4, 6); // Center front dip
+    
+    // Hat band
+    ctx.fillStyle = '#2F1B14'; // Dark leather band
+    ctx.fillRect(x + 9, y + 8, 22, 3);
+    
+    // Hat band decoration (simple metal ring)
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(x + 19, y + 8, 2, 3);
+    
+    // Head
+    ctx.fillStyle = '#FDBCB4';
+    ctx.fillRect(x + 12, y + 12, 16, 16); // Moved down to accommodate taller hat
+    
+    // Eyes
+    ctx.fillStyle = isDead ? '#FF0000' : '#000';
+    ctx.fillRect(x + 16, y + 16, 2, 2); // Moved down
+    ctx.fillRect(x + 22, y + 16, 2, 2); // Moved down
+    
+    // Mustache (classic cowboy feature)
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x + 17, y + 21, 6, 2); // Moved down
+    ctx.fillRect(x + 16, y + 22, 2, 1); // Moved down
+    ctx.fillRect(x + 22, y + 22, 2, 1); // Moved down
+    
+    // Body (beige/tan color)
+    ctx.fillStyle = '#F5DEB3';
+    ctx.fillRect(x + 10, y + 28, 20, 20);
+    
+    // Sheriff badge (smaller)
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(x + 18, y + 32, 4, 4); // Smaller badge
+    ctx.fillStyle = '#B8860B';
+    ctx.fillRect(x + 18, y + 32, 4, 4); // Badge inner area
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(x + 19, y + 33, 2, 2); // Badge center star
+    
+    // Enhanced belt with buckle
+    ctx.fillStyle = '#8B4513'; // Brown leather belt
+    ctx.fillRect(x + 8, y + 44, 24, 4); // Moved down
+    
+    // Belt buckle
+    ctx.fillStyle = '#C0C0C0'; // Silver buckle
+    ctx.fillRect(x + 17, y + 43, 6, 6); // Moved down
+    ctx.fillStyle = '#FFD700'; // Gold accent
+    ctx.fillRect(x + 18, y + 44, 4, 4); // Moved down
+    ctx.fillStyle = '#8B4513'; // Buckle center hole
+    ctx.fillRect(x + 19, y + 45, 2, 2); // Moved down
+    
+    // Belt studs/decoration
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(x + 12, y + 45, 1, 2); // Moved down
+    ctx.fillRect(x + 27, y + 45, 1, 2); // Moved down
+    
+    // Arms (beige/tan color)
+    ctx.fillStyle = '#F5DEB3';
+    ctx.fillRect(x + 6, y + 30, 6, 12); // Moved down
+    ctx.fillRect(x + 28, y + 30, 6, 12); // Moved down
+    
+    // Legs (blue jeans) - REDUCED HEIGHT FROM 16px TO 10px (-6px)
+    ctx.fillStyle = '#4169E1'; // Blue jeans
+    ctx.fillRect(x + 14, y + 48, 6, 10); // CHANGED: was 16, now 10 (-6px)
+    ctx.fillRect(x + 20, y + 48, 6, 10); // CHANGED: was 16, now 10 (-6px)
+    
+    // Enhanced cowboy boots (brown) - MOVED UP 4px, REDUCED HEIGHT 2px
+    ctx.fillStyle = '#8B4513'; // Brown leather boots
+    ctx.fillRect(x + 12, y + 58, 10, 6); // CHANGED: was y + 62, height 8 -> y + 58, height 6
+    ctx.fillRect(x + 18, y + 58, 10, 6); // CHANGED: was y + 62, height 8 -> y + 58, height 6
+    
+    // Boot heels - ADJUSTED
+    ctx.fillStyle = '#654321'; // Darker brown for heels
+    ctx.fillRect(x + 12, y + 62, 10, 2); // CHANGED: was y + 66, height 4 -> y + 62, height 2
+    ctx.fillRect(x + 18, y + 62, 10, 2); // CHANGED: was y + 66, height 4 -> y + 62, height 2
+    
+    // Boot spurs - ADJUSTED
+    ctx.fillStyle = '#C0C0C0'; // Silver spurs
+    ctx.fillRect(x + 10, y + 62, 2, 2); // CHANGED: was y + 66 -> y + 62
+    ctx.fillRect(x + 28, y + 62, 2, 2); // CHANGED: was y + 66 -> y + 62
+    
+    // Boot stitching details - ADJUSTED
+    ctx.fillStyle = '#A0522D';
+    ctx.fillRect(x + 14, y + 60, 6, 1); // CHANGED: was y + 64 -> y + 60
+    ctx.fillRect(x + 20, y + 60, 6, 1); // CHANGED: was y + 64 -> y + 60
+    
+    // Boot toe caps - ADJUSTED
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 12, y + 58, 3, 3); // CHANGED: was y + 62, height 4 -> y + 58, height 3
+    ctx.fillRect(x + 25, y + 58, 3, 3); // CHANGED: was y + 62, height 4 -> y + 58, height 3
+
+    // Gun (existing code) - ADJUSTED
+    if (bullets > 0) {
+        ctx.fillStyle = activeBuffs.multiShot > 0 ? '#FF4500' : '#d9d9d9';
+        ctx.fillRect(x + 34, y + 34, 12, 3); // Moved down
+        ctx.fillRect(x + 30, y + 36, 6, 8); // Moved down
+        ctx.fillStyle = '#1A1A1A';
+        ctx.fillRect(x + 32, y + 39, 2, 3); // Moved down
+        
+        if (activeBuffs.multiShot > 0) {
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(x + 35, y + 33, 10, 1); // Moved down
+            ctx.fillRect(x + 35, y + 37, 10, 1); // Moved down
+        }
+    }
+    
+    ctx.restore();
+}
+      
+        // Replace the existing drawDungeon function (around line 1735) with this enhanced version:
+
+function drawDungeon(x, y, facingLeft = false, isDead = false) {
+    ctx.save();
+    
+    if (facingLeft) {
+        ctx.scale(-1, 1);
+        x = -x - player.width;
+    }
+    
+    // Enhanced flat-top head (classic Frankenstein)
+    ctx.fillStyle = '#90EE90';
+    ctx.fillRect(x + 8, y + 6, 24, 18); // Main head
+    ctx.fillRect(x + 6, y + 6, 28, 4);  // Flat top forehead extension
+    
+    // Forehead scar (horizontal across top)
+    ctx.fillStyle = '#228B22'; // Darker green for scars
+    ctx.fillRect(x + 10, y + 8, 20, 1);
+    ctx.fillStyle = '#000000'; // Black stitching dots
+    for (let i = 0; i < 6; i++) {
+        ctx.fillRect(x + 12 + i * 3, y + 7, 1, 1);
+        ctx.fillRect(x + 12 + i * 3, y + 9, 1, 1);
+    }
+    
+    // Enhanced neck bolts with electrical sparks
+    const boltGlow = 0.7 + Math.sin(Date.now() * 0.008) * 0.3;
+    ctx.fillStyle = '#C0C0C0'; // Silver bolts
+    ctx.fillRect(x + 2, y + 16, 6, 3); // Left bolt - larger
+    ctx.fillRect(x + 32, y + 16, 6, 3); // Right bolt - larger
+    
+    // Bolt cores (darker)
+    ctx.fillStyle = '#696969';
+    ctx.fillRect(x + 3, y + 16, 4, 3);
+    ctx.fillRect(x + 33, y + 16, 4, 3);
+    
+    // Electrical sparks around bolts
+    if (bullets > 0 || Math.random() > 0.7) {
+        ctx.fillStyle = `rgba(0, 255, 255, ${boltGlow})`;
+        // Left bolt sparks
+        ctx.fillRect(x + 1, y + 15, 1, 1);
+        ctx.fillRect(x + 0, y + 18, 1, 1);
+        ctx.fillRect(x + 4, y + 14, 1, 1);
+        // Right bolt sparks  
+        ctx.fillRect(x + 37, y + 15, 1, 1);
+        ctx.fillRect(x + 38, y + 18, 1, 1);
+        ctx.fillRect(x + 35, y + 14, 1, 1);
+    }
+    
+    // Dark, wild hair
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x + 4, y, 32, 8); // Main hair mass
+    // Hair spikes/wild strands
+    ctx.fillRect(x + 2, y + 2, 3, 4);
+    ctx.fillRect(x + 35, y + 1, 3, 5);
+    ctx.fillRect(x + 12, y - 1, 2, 3);
+    ctx.fillRect(x + 26, y - 1, 2, 3);
+    
+    // Eyes with more character
+    if (isDead) {
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(x + 14, y + 12, 3, 3); // Larger dead eyes
+        ctx.fillRect(x + 23, y + 12, 3, 3);
+        // X marks for dead eyes
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x + 14, y + 12, 1, 1);
+        ctx.fillRect(x + 16, y + 14, 1, 1);
+        ctx.fillRect(x + 16, y + 12, 1, 1);
+        ctx.fillRect(x + 14, y + 14, 1, 1);
+        ctx.fillRect(x + 23, y + 12, 1, 1);
+        ctx.fillRect(x + 25, y + 14, 1, 1);
+        ctx.fillRect(x + 25, y + 12, 1, 1);
+        ctx.fillRect(x + 23, y + 14, 1, 1);
+    } else {
+        ctx.fillStyle = '#FFFF00'; // Glowing yellow eyes
+        ctx.fillRect(x + 14, y + 12, 3, 3);
+        ctx.fillRect(x + 23, y + 12, 3, 3);
+        // Eye glow effect
+        const eyeGlow = 0.5 + Math.sin(Date.now() * 0.006) * 0.3;
+        ctx.fillStyle = `rgba(255, 255, 0, ${eyeGlow})`;
+        ctx.fillRect(x + 13, y + 11, 5, 5);
+        ctx.fillRect(x + 22, y + 11, 5, 5);
+    }
+    
+    // Mouth with stitches
+    ctx.fillStyle = '#228B22'; // Dark green mouth
+    ctx.fillRect(x + 17, y + 19, 6, 2);
+    // Mouth stitches
+    ctx.fillStyle = '#000000';
+    for (let i = 0; i < 4; i++) {
+        ctx.fillRect(x + 17 + i * 1.5, y + 18, 1, 1);
+        ctx.fillRect(x + 17 + i * 1.5, y + 21, 1, 1);
+    }
+    
+    // Face scars and stitching
+    ctx.fillStyle = '#228B22';
+    // Vertical scar on left cheek
+    ctx.fillRect(x + 12, y + 14, 1, 6);
+    // Diagonal scar on right cheek  
+    ctx.fillRect(x + 27, y + 16, 1, 1);
+    ctx.fillRect(x + 28, y + 17, 1, 1);
+    ctx.fillRect(x + 29, y + 18, 1, 1);
+    
+    // Stitching dots for face scars
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x + 11, y + 15, 1, 1);
+    ctx.fillRect(x + 13, y + 15, 1, 1);
+    ctx.fillRect(x + 11, y + 18, 1, 1);
+    ctx.fillRect(x + 13, y + 18, 1, 1);
+    
+    // Enhanced body with torn laboratory coat
+    // Base body (green skin showing through tears)
+    ctx.fillStyle = '#90EE90';
+    ctx.fillRect(x + 8, y + 24, 24, 24);
+    
+    // Torn laboratory coat/vest
+    ctx.fillStyle = '#2F4F4F'; // Dark lab coat (using original body color)
+    ctx.fillRect(x + 6, y + 26, 28, 20); // Main coat
+    // Coat tears and patches
+    ctx.fillStyle = '#90EE90'; // Skin showing through
+    ctx.fillRect(x + 12, y + 30, 4, 6); // Left tear
+    ctx.fillRect(x + 24, y + 35, 3, 4); // Right tear
+    ctx.fillRect(x + 18, y + 28, 2, 8); // Center tear
+    
+    // Coat buttons (remaining ones)
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(x + 19, y + 29, 2, 2);
+    ctx.fillRect(x + 19, y + 39, 2, 2);
+    // Missing button (torn off)
+    ctx.fillStyle = '#1A1A1A';
+    ctx.fillRect(x + 19, y + 34, 2, 1); // Button hole
+    
+    // Body stitching and scars
+    ctx.fillStyle = '#228B22';
+    // Horizontal chest scar
+    ctx.fillRect(x + 10, y + 32, 20, 1);
+    // Vertical torso scar
+    ctx.fillRect(x + 20, y + 26, 1, 15);
+    
+    // Body stitching dots
+    ctx.fillStyle = '#000000';
+    for (let i = 0; i < 8; i++) {
+        // Chest stitches
+        ctx.fillRect(x + 11 + i * 2.5, y + 31, 1, 1);
+        ctx.fillRect(x + 11 + i * 2.5, y + 33, 1, 1);
+    }
+    for (let i = 0; i < 6; i++) {
+        // Vertical stitches
+        ctx.fillRect(x + 19, y + 27 + i * 2.5, 1, 1);
+        ctx.fillRect(x + 21, y + 27 + i * 2.5, 1, 1);
+    }
+    
+    // Enhanced arms with patches and stitching
+    ctx.fillStyle = '#90EE90';
+    ctx.fillRect(x + 2, y + 28, 8, 16); // Left arm
+    ctx.fillRect(x + 30, y + 28, 8, 16); // Right arm
+    
+    // Arm patches (different colored skin grafts)
+    ctx.fillStyle = '#7CCD7C'; // Slightly different green
+    ctx.fillRect(x + 3, y + 30, 3, 4); // Left arm patch
+    ctx.fillRect(x + 32, y + 35, 3, 3); // Right arm patch
+    
+    // Arm stitching
+    ctx.fillStyle = '#228B22';
+    ctx.fillRect(x + 3, y + 34, 6, 1); // Left arm horizontal scar
+    ctx.fillRect(x + 31, y + 38, 6, 1); // Right arm horizontal scar
+    
+    // Arm stitching dots
+    ctx.fillStyle = '#000000';
+    for (let i = 0; i < 4; i++) {
+        ctx.fillRect(x + 3 + i * 1.5, y + 33, 1, 1);
+        ctx.fillRect(x + 3 + i * 1.5, y + 35, 1, 1);
+        ctx.fillRect(x + 31 + i * 1.5, y + 37, 1, 1);
+        ctx.fillRect(x + 31 + i * 1.5, y + 39, 1, 1);
+    }
+    
+    // Enhanced legs and arms (original positioning)
+    ctx.fillStyle = '#90EE90';
+    ctx.fillRect(x + 12, y + 48, 6, 14);
+    ctx.fillRect(x + 22, y + 48, 6, 14);
+    
+    // Enhanced hand energy effect when has bullets
+    if (bullets > 0) {
+        const energyPulse = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
+        
+        // Energy glow around hand
+        ctx.fillStyle = `rgba(0, 255, 255, ${energyPulse * 0.3})`;
+        ctx.fillRect(x + 32, y + 28, 12, 12);
+        
+        // Energy core in palm
+        ctx.fillStyle = activeBuffs.multiShot > 0 ? '#FF4500' : '#00FFFF';
+        ctx.fillRect(x + 35, y + 31, 6, 6);
+        
+        // Energy crackling effect
+        if (activeBuffs.multiShot > 0) {
+            ctx.fillStyle = `rgba(255, 215, 0, ${energyPulse})`;
+            ctx.fillRect(x + 33, y + 29, 2, 2);
+            ctx.fillRect(x + 39, y + 35, 2, 2);
+            ctx.fillRect(x + 36, y + 27, 1, 1);
+        }
+        
+        // Energy sparks
+        const sparkX = x + 37 + Math.sin(Date.now() * 0.02) * 2;
+        const sparkY = y + 33 + Math.cos(Date.now() * 0.015) * 2;
+        ctx.fillStyle = `rgba(255, 255, 255, ${energyPulse})`;
+        ctx.fillRect(sparkX, sparkY, 1, 1);
+    }
+    
+    ctx.restore();
+}
+        
+        
+        
+        function drawObstacle(obstacle) {
+            const animTime = obstacle.animationTime || 0;
+            switch(obstacle.type) {
+                case 'cactus': drawCactus(obstacle.x, obstacle.y, obstacle.height, animTime); break;
+                case 'rock': drawRock(obstacle.x, obstacle.y, obstacle.width, obstacle.height); break;
+                case 'vulture': drawVulture(obstacle.x, obstacle.y); break;
+                case 'bull': drawBull(obstacle.x, obstacle.y, false, animTime); break;
+                case 'boss': drawBull(obstacle.x, obstacle.y, true, animTime); break;
+                case 'prisoner': drawPrisoner(obstacle.x, obstacle.y, animTime); break;
+                case 'bulletBox': drawBulletBox(obstacle.x, obstacle.y, animTime); break;
+                case 'bat': drawBat(obstacle.x, obstacle.y); break;
+                case 'vampire': drawVampire(obstacle.x, obstacle.y, animTime); break;
+                case 'spider': drawSpider(obstacle.x, obstacle.y, false, animTime); break;
+                case 'alphaWolf': drawWolf(obstacle.x, obstacle.y, true, animTime); break;
+                case 'skeleton': drawSkeleton(obstacle.x, obstacle.y, animTime); break;
+                case 'boltBox': drawBoltBox(obstacle.x, obstacle.y, animTime); break;
+            }
+
+            obstacles.forEach(obstacle => {
+    if (obstacle.type === 'healthPack') {
+        drawHealthPack(obstacle.x, obstacle.y, obstacle.width, obstacle.height, obstacle.animationTime);
+    } else if (obstacle.type === 'bulletBox') {
+        drawBulletBox(obstacle.x, obstacle.y, obstacle.animationTime);
+    }
+    // weitere obstacle-Typen ...
+});
+        }
+
+        function drawCactus(x, y, height, animTime = 0) {
+            const sway = Math.sin(animTime * 0.002) * 1;
+            
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(x + 10 + sway, y, 12, height);
+            ctx.fillRect(x + sway, y + height/3, 8, height/3);
+            ctx.fillRect(x + 8 + sway, y + height/3, 4, 8);
+            ctx.fillRect(x + 24 + sway, y + height/2, 8, height/4);
+            ctx.fillRect(x + 20 + sway, y + height/2, 4, 8);
+            
+            const spineIntensity = 0.5 + Math.sin(animTime * 0.003) * 0.3;
+            ctx.fillStyle = `rgba(0, 100, 0, ${spineIntensity})`;
+            for (let i = 0; i < height; i += 8) {
+                const spineOffset = Math.sin(animTime * 0.004 + i * 0.1) * 0.5;
+                ctx.fillRect(x + 8 + sway + spineOffset, y + i, 2, 3);
+                ctx.fillRect(x + 22 + sway - spineOffset, y + i + 4, 2, 3);
+            }
+        }
+        
+        function drawRock(x, y, width, height) {
+    if (currentTheme === 'cowboy') {
+        // Desert rock formation - more natural rock shape
+        
+        // Base rock mass (irregular shape)
+        ctx.fillStyle = '#696969'; // Medium gray
+        ctx.fillRect(x + 2, y + 8, width - 4, height - 8); // Main body
+        ctx.fillRect(x, y + 12, width, height - 12); // Base
+        ctx.fillRect(x + 4, y + 4, width - 8, 8); // Top section
+        
+        // Rock layers and stratification
+        ctx.fillStyle = '#808080'; // Lighter gray layers
+        ctx.fillRect(x + 1, y + 10, width - 2, 2); // Top layer
+        ctx.fillRect(x + 3, y + 16, width - 6, 2); // Middle layer
+        ctx.fillRect(x + 2, y + 22, width - 4, 2); // Lower layer
+        
+        // Rock highlights (sun-facing surfaces)
+        ctx.fillStyle = '#A9A9A9'; // Light gray highlights
+        ctx.fillRect(x + 2, y + 6, 4, height - 10); // Left face highlight
+        ctx.fillRect(x + 4, y + 4, width - 12, 4); // Top highlight
+        
+        // Rock shadows and cracks
+        ctx.fillStyle = '#2F2F2F'; // Dark gray shadows
+        ctx.fillRect(x + width - 6, y + 8, 4, height - 8); // Right shadow
+        ctx.fillRect(x + 4, y + height - 4, width - 8, 4); // Bottom shadow
+        
+        // Vertical cracks
+        ctx.fillStyle = '#1A1A1A'; // Black cracks
+        ctx.fillRect(x + 8, y + 6, 1, height - 8); // Main crack
+        ctx.fillRect(x + 15, y + 10, 1, height - 12); // Secondary crack
+        ctx.fillRect(x + 20, y + 8, 1, height - 10); // Tertiary crack
+        
+        // Horizontal stress fractures
+        ctx.fillRect(x + 6, y + 14, 8, 1); // Upper fracture
+        ctx.fillRect(x + 12, y + 20, 12, 1); // Lower fracture
+        
+        // Desert weathering spots
+        ctx.fillStyle = '#8B7355'; // Sandy brown weathering
+        ctx.fillRect(x + 3, y + 8, 2, 3); // Weathered spot 1
+        ctx.fillRect(x + width - 4, y + 12, 2, 4); // Weathered spot 2
+        ctx.fillRect(x + 10, y + height - 6, 3, 2); // Base weathering
+        
+        // Small pebbles and debris around base
+        ctx.fillStyle = '#A0522D'; // Sienna debris
+        ctx.fillRect(x - 1, y + height - 2, 2, 2); // Left debris
+        ctx.fillRect(x + width, y + height - 1, 1, 1); // Right debris
+        ctx.fillRect(x + 6, y + height + 1, 1, 1); // Front debris
+        
+    } else {
+        // Dungeon gravestone - gothic tombstone design
+        
+        // Gravestone base/foundation
+        ctx.fillStyle = '#2F2F2F'; // Dark stone base
+        ctx.fillRect(x, y + height - 8, width, 8); // Base platform
+        ctx.fillRect(x - 2, y + height - 4, width + 4, 4); // Extended base
+        
+        // Main gravestone body
+        ctx.fillStyle = '#696969'; // Gray stone
+        ctx.fillRect(x + 3, y + 6, width - 6, height - 14); // Main body
+        
+        // Rounded/arched top (classic gravestone shape)
+        ctx.fillRect(x + 5, y + 2, width - 10, 8); // Top section
+        ctx.fillRect(x + 7, y, width - 14, 6); // Rounded arch top
+        
+        // Stone texture and aging
+        ctx.fillStyle = '#808080'; // Lighter stone highlights
+        ctx.fillRect(x + 4, y + 4, 2, height - 16); // Left edge highlight
+        ctx.fillRect(x + 6, y + 2, width - 14, 2); // Top edge highlight
+        
+        // Weathering and moss stains
+        ctx.fillStyle = '#556B2F'; // Dark olive green moss
+        ctx.fillRect(x + 5, y + 8, 3, 6); // Left moss patch
+        ctx.fillRect(x + width - 6, y + 12, 2, 8); // Right moss streak
+        ctx.fillRect(x + 8, y + height - 12, 6, 4); // Base moss growth
+        
+        // Cracks and damage
+        ctx.fillStyle = '#1A1A1A'; // Black cracks
+        ctx.fillRect(x + 10, y + 4, 1, height - 18); // Vertical crack
+        ctx.fillRect(x + 6, y + 14, 8, 1); // Horizontal crack
+        ctx.fillRect(x + 12, y + height - 10, 6, 1); // Base crack
+        
+        // Gothic cross carving (traditional gravestone symbol)
+        ctx.fillStyle = '#000000'; // Black carved lines
+        // Vertical line of cross
+        ctx.fillRect(x + width/2, y + 8, 1, 8);
+        // Horizontal line of cross
+        ctx.fillRect(x + width/2 - 3, y + 11, 7, 1);
+        
+        // Carved text lines (illegible weathered text)
+        ctx.fillStyle = '#2F2F2F'; // Dark carved text
+        ctx.fillRect(x + 6, y + 20, width - 12, 1); // Text line 1
+        ctx.fillRect(x + 8, y + 23, width - 16, 1); // Text line 2
+        ctx.fillRect(x + 7, y + 26, width - 14, 1); // Text line 3
+        
+        // Carved decorative elements
+        ctx.fillStyle = '#404040'; // Medium gray carved details
+        // Corner decorations
+        ctx.fillRect(x + 4, y + 6, 2, 2); // Top left corner
+        ctx.fillRect(x + width - 6, y + 6, 2, 2); // Top right corner
+        
+        // Stone chipping and wear
+        ctx.fillStyle = '#1A1A1A';
+        ctx.fillRect(x + 3, y + 8, 1, 2); // Left edge chip
+        ctx.fillRect(x + width - 3, y + 16, 1, 3); // Right edge wear
+        ctx.fillRect(x + 8, y + 2, 2, 1); // Top edge damage
+        
+        // Shadowing for depth
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x + width - 2, y + 6, 2, height - 14); // Right shadow
+        ctx.fillRect(x + 5, y + height - 6, width - 6, 2); // Bottom shadow
+        
+        // Ground around gravestone (disturbed earth)
+        ctx.fillStyle = '#3C3C3C'; // Dark earth
+        ctx.fillRect(x - 3, y + height - 2, 2, 3); // Left disturbed soil
+        ctx.fillRect(x + width + 1, y + height - 1, 2, 2); // Right disturbed soil
+        
+        // Small flowers or weeds growing at base (optional detail)
+        if (Math.random() > 0.3) { // 70% chance to show vegetation
+            ctx.fillStyle = '#228B22'; // Green vegetation
+            ctx.fillRect(x + 2, y + height - 3, 1, 2); // Small weed
+            ctx.fillRect(x + width - 1, y + height - 2, 1, 1); // Tiny growth
+        }
+    }
+}
+        
+        function drawVulture(x, y) {
+            ctx.save();
+            ctx.scale(-1, 1);
+            x = -x - 42;
+            
+            ctx.fillStyle = '#2F4F2F';
+            ctx.fillRect(x + 15, y + 12, 12, 8);
+            
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x + 25, y + 8, 8, 8);
+            
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(x + 33, y + 10, 4, 3);
+            
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(x + 28, y + 10, 2, 2);
+            
+            const wingFlap = Math.sin(Date.now() * 0.01) * 3;
+            ctx.fillStyle = '#2F4F2F';
+            ctx.fillRect(x + 5, y + 10 - wingFlap, 12, 4);
+            ctx.fillRect(x + 29, y + 10 + wingFlap, 12, 4);
+            ctx.fillRect(x + 8, y + 4, 8, 6);
+            
+            ctx.restore();
+        }
+        
+        function drawBull(x, y, isBoss = false, animTime = 0) {
+            const scale = isBoss ? 1.5 : 1;
+            const scaledWidth = 42 * scale;
+            const scaledHeight = 38 * scale;
+            
+            const breathe = Math.sin(animTime * 0.004) * 0.5;
+            
+            if (isBoss) {
+                const gradient = ctx.createRadialGradient(
+                    x + scaledWidth/2, y + scaledHeight/2, 0,
+                    x + scaledWidth/2, y + scaledHeight/2, scaledWidth * 0.8
+                );
+                gradient.addColorStop(0, 'rgba(255, 0, 0, 0.6)');
+                gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.3)');
+                gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x - 15, y - 15, scaledWidth + 30, scaledHeight + 30);
+            }
+            
+            ctx.fillStyle = isBoss ? '#654321' : '#8B4513';
+            ctx.fillRect(x + 5 * scale, y + 10 * scale + breathe, 30 * scale, 20 * scale);
+            ctx.fillRect(x, y + 5 * scale + breathe, 15 * scale, 15 * scale);
+            
+            ctx.fillStyle = '#F5DEB3';
+            ctx.fillRect(x + 2 * scale, y + breathe, 3 * scale, 8 * scale);
+            ctx.fillRect(x + 10 * scale, y + breathe, 3 * scale, 8 * scale);
+            
+            const eyeFlicker = Math.sin(animTime * 0.01) > 0.8 ? 1 : 0;
+            ctx.fillStyle = isBoss ? '#FF4500' : '#FF0000';
+            ctx.fillRect(x + 4 * scale, y + 8 * scale + breathe + eyeFlicker, 2 * scale, 2 * scale);
+            ctx.fillRect(x + 9 * scale, y + 8 * scale + breathe + eyeFlicker, 2 * scale, 2 * scale);
+            
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(x + 8 * scale, y + 30 * scale, 4 * scale, 8 * scale);
+            ctx.fillRect(x + 14 * scale, y + 30 * scale, 4 * scale, 8 * scale);
+            ctx.fillRect(x + 20 * scale, y + 30 * scale, 4 * scale, 8 * scale);
+            ctx.fillRect(x + 26 * scale, y + 30 * scale, 4 * scale, 8 * scale);
+            
+            const tailWag = Math.sin(animTime * 0.005) * 2;
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x + 35 * scale + tailWag, y + 15 * scale, 6 * scale, 2 * scale);
+            
+            if (isBoss || Math.sin(animTime * 0.006) > 0.5) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                const steamY = y + 12 * scale + breathe;
+                ctx.fillRect(x + 5 * scale, steamY - 2, 1, 3);
+                ctx.fillRect(x + 8 * scale, steamY - 3, 1, 4);
+                ctx.fillRect(x + 11 * scale, steamY - 2, 1, 3);
+            }
+            
+            if (isBoss) {
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(x + 5 * scale, y - 3 * scale + breathe, 2 * scale, 5 * scale);
+                ctx.fillRect(x + 10 * scale, y - 3 * scale + breathe, 2 * scale, 5 * scale);
+                ctx.fillRect(x + 15 * scale, y - 3 * scale + breathe, 2 * scale, 5 * scale);
+            }
+        }
+        
+        function drawPrisoner(x, y, animTime = 0) {
+            const struggle = Math.sin(animTime * 0.01) * 0.8;
+            const headShake = Math.sin(animTime * 0.008) * 0.5;
+            
+            ctx.fillStyle = '#FDBCB4';
+            ctx.fillRect(x + 12 + headShake, y + 8, 16, 16);
+            
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x + 16 + headShake, y + 12, 2, 2);
+            ctx.fillRect(x + 22 + headShake, y + 12, 2, 2);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x + 10 + struggle, y + 24, 20, 20);
+            
+            ctx.fillStyle = '#000000';
+            for (let i = 0; i < 5; i++) {
+                const stripeOffset = Math.sin(animTime * 0.003 + i * 0.5) * 0.2;
+                ctx.fillRect(x + 10 + struggle + stripeOffset, y + 26 + i * 4, 20, 2);
+            }
+            
+            const armStruggle = Math.sin(animTime * 0.007) * 1;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x + 6 + armStruggle, y + 26, 6, 12);
+            ctx.fillRect(x + 28 - armStruggle, y + 26, 6, 12);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 6 + armStruggle, y + 28, 6, 2);
+            ctx.fillRect(x + 6 + armStruggle, y + 32, 6, 2);
+            ctx.fillRect(x + 28 - armStruggle, y + 28, 6, 2);
+            ctx.fillRect(x + 28 - armStruggle, y + 32, 6, 2);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x + 14 + struggle, y + 44, 6, 16);
+            ctx.fillRect(x + 20 + struggle, y + 44, 6, 16);
+            ctx.fillStyle = '#000000';
+            for (let i = 0; i < 4; i++) {
+                ctx.fillRect(x + 14 + struggle, y + 46 + i * 4, 6, 2);
+                ctx.fillRect(x + 20 + struggle, y + 46 + i * 4, 6, 2);
+            }
+            
+            const chainSwing = Math.sin(animTime * 0.004) * 1.5;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 16 + chainSwing, y + 30, 8, 6);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x + 17 + chainSwing, y + 31, 6, 4);
+            
+            ctx.fillStyle = '#666666';
+            for (let i = 0; i < 3; i++) {
+                ctx.fillRect(x + 19 + chainSwing + i * 2, y + 36 + i, 2, 3);
+            }
+        }
+        
+        function drawBulletBox(x, y, animTime = 0) {
+            const float = Math.sin(animTime * 0.003) * 2;
+            const pulse = 0.6 + Math.sin(animTime * 0.005) * 0.4;
+            
+            const gradient = ctx.createRadialGradient(x + 12, y + 8 + float, 0, x + 12, y + 8 + float, 35);
+            gradient.addColorStop(0, `rgba(255, 215, 0, ${pulse})`);
+            gradient.addColorStop(0.5, `rgba(255, 215, 0, ${pulse * 0.5})`);
+            gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x - 15, y - 15 + float, 54, 46);
+            
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x, y + float, 24, 16);
+            
+            ctx.fillStyle = '#CD853F';
+            ctx.fillRect(x + 2, y + 2 + float, 20, 2);
+            ctx.fillRect(x + 2, y + 2 + float, 2, 12);
+            
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(x + 20, y + 4 + float, 4, 12);
+            ctx.fillRect(x + 4, y + 12 + float, 20, 4);
+            
+            const glowIntensity = 0.7 + Math.sin(animTime * 0.006) * 0.3;
+            ctx.fillStyle = `rgba(255, 215, 0, ${glowIntensity})`;
+            ctx.fillRect(x + 8, y + 6 + float, 8, 4);
+            ctx.fillStyle = '#FFF8DC';
+            ctx.fillRect(x + 9, y + 7 + float, 6, 2);
+            
+            if (Math.sin(animTime * 0.01) > 0.7) {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(x + 6 + Math.sin(animTime * 0.02) * 2, y + 4 + float, 1, 1);
+                ctx.fillRect(x + 22 + Math.cos(animTime * 0.02) * 2, y + 8 + float, 1, 1);
+            }
+            
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x + 18, y + 6 + float, 3, 4);
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(x + 18, y + 6 + float, 2, 1);
+            ctx.fillRect(x + 18, y + 8 + float, 2, 1);
+        }
+        
+        function drawBat(x, y) {
+            const wingFlap = Math.sin(Date.now() * 0.02) * 4;
+            
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(x + 15, y + 8, 8, 12);
+            
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(x + 2 + wingFlap, y + 6, 12, 8);
+            ctx.fillRect(x + 24 - wingFlap, y + 6, 12, 8);
+            ctx.fillRect(x + 4 + wingFlap, y + 2, 8, 6);
+            ctx.fillRect(x + 26 - wingFlap, y + 2, 8, 6);
+            
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(x + 16, y + 10, 2, 2);
+            ctx.fillRect(x + 20, y + 10, 2, 2);
+        }
+        
+        function drawVampire(x, y, animTime = 0) {
+            const sway = Math.sin(animTime * 0.003) * 1;
+            const capeFlutter = Math.sin(animTime * 0.007) * 2;
+            
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(x + 5 + sway - capeFlutter, y + 20, 30 + capeFlutter, 25);
+            ctx.fillRect(x + 10 + sway, y + 10, 20, 15);
+            
+            ctx.fillStyle = '#660000';
+            ctx.fillRect(x + 4 + sway - capeFlutter, y + 22, 2, 20);
+            ctx.fillRect(x + 33 + sway + capeFlutter, y + 22, 2, 20);
+            
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + 12 + sway, y + 8, 16, 16);
+            
+            ctx.fillStyle = '#000000';
+            const hairFlow = Math.sin(animTime * 0.004) * 1;
+            ctx.fillRect(x + 10 + sway + hairFlow, y + 4, 20, 8);
+            
+            const eyeGlow = 0.7 + Math.sin(animTime * 0.008) * 0.3;
+            ctx.fillStyle = `rgba(255, 0, 0, ${eyeGlow})`;
+            ctx.fillRect(x + 15 + sway, y + 11, 3, 3);
+            ctx.fillRect(x + 21 + sway, y + 11, 3, 3);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x + 17 + sway, y + 18, 1, 3);
+            ctx.fillRect(x + 22 + sway, y + 18, 1, 3);
+            
+            const armSway = Math.sin(animTime * 0.006) * 0.5;
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + 6 + sway - armSway, y + 26, 6, 12);
+            ctx.fillRect(x + 28 + sway + armSway, y + 26, 6, 12);
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 14 + sway, y + 44, 6, 16);
+            ctx.fillRect(x + 20 + sway, y + 44, 6, 16);
+            
+            if (Math.sin(animTime * 0.01) > 0.3) {
+                ctx.fillStyle = 'rgba(139, 0, 0, 0.3)';
+                ctx.fillRect(x + 2 + sway, y + 15, 1, 8);
+                ctx.fillRect(x + 37 + sway, y + 18, 1, 6);
+                ctx.fillRect(x + 15 + sway, y + 2, 1, 3);
+            }
+        }
+        
+        
+        
+        function drawSpider(x, y, isBoss = false, animTime = 0) {
+    const scale = isBoss ? 1.5 : 1;
+    const scaledWidth = 42 * scale;
+    const scaledHeight = 28 * scale;
+    
+    const scuttle = Math.sin(animTime * 0.008) * 1.2;
+    const bodyBob = Math.sin(animTime * 0.006) * 0.4;
+    
+    if (isBoss) {
+        const gradient = ctx.createRadialGradient(
+            x + scaledWidth/2, y + scaledHeight/2, 0,
+            x + scaledWidth/2, y + scaledHeight/2, scaledWidth * 0.8
+        );
+        gradient.addColorStop(0, 'rgba(139, 0, 139, 0.6)');
+        gradient.addColorStop(0.5, 'rgba(75, 0, 130, 0.3)');
+        gradient.addColorStop(1, 'rgba(75, 0, 130, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x - 15, y - 15, scaledWidth + 30, scaledHeight + 30);
+    }
+    
+    // Spider abdomen (back body part)
+    ctx.fillStyle = isBoss ? '#4B0082' : '#1A1A1A'; // Purple for boss, black for normal
+    ctx.fillRect(x + 20 * scale, y + 8 * scale + bodyBob, 18 * scale, 14 * scale);
+    ctx.fillRect(x + 22 * scale, y + 6 * scale + bodyBob, 14 * scale, 18 * scale);
+    
+    // Abdomen markings
+    ctx.fillStyle = isBoss ? '#8B008B' : '#8B0000'; // Magenta for boss, dark red for normal
+    ctx.fillRect(x + 24 * scale, y + 10 * scale + bodyBob, 10 * scale, 2 * scale);
+    ctx.fillRect(x + 26 * scale, y + 14 * scale + bodyBob, 6 * scale, 2 * scale);
+    ctx.fillRect(x + 25 * scale, y + 18 * scale + bodyBob, 8 * scale, 2 * scale);
+    
+    // Spider cephalothorax (front body part)
+    ctx.fillStyle = isBoss ? '#4B0082' : '#2F2F2F';
+    ctx.fillRect(x + 12 * scale, y + 12 * scale + bodyBob, 12 * scale, 10 * scale);
+    
+    // Multiple spider eyes arrangement (spiders have 8 eyes)
+    const eyeGlow = isBoss ? 1 : 0.8 + Math.sin(animTime * 0.007) * 0.2;
+    ctx.fillStyle = isBoss ? `rgba(138, 43, 226, ${eyeGlow})` : `rgba(255, 0, 0, ${eyeGlow})`;
+    
+    // Main eyes (largest, front-facing)
+    ctx.fillRect(x + 14 * scale, y + 14 * scale + bodyBob, 2 * scale, 2 * scale);
+    ctx.fillRect(x + 18 * scale, y + 14 * scale + bodyBob, 2 * scale, 2 * scale);
+    
+    // Secondary eyes (smaller, on sides)
+    ctx.fillRect(x + 13 * scale, y + 12 * scale + bodyBob, 1 * scale, 1 * scale);
+    ctx.fillRect(x + 20 * scale, y + 12 * scale + bodyBob, 1 * scale, 1 * scale);
+    ctx.fillRect(x + 12 * scale, y + 16 * scale + bodyBob, 1 * scale, 1 * scale);
+    ctx.fillRect(x + 21 * scale, y + 16 * scale + bodyBob, 1 * scale, 1 * scale);
+    
+    // Rear eyes (smallest)
+    ctx.fillRect(x + 15 * scale, y + 12 * scale + bodyBob, 1 * scale, 1 * scale);
+    ctx.fillRect(x + 18 * scale, y + 12 * scale + bodyBob, 1 * scale, 1 * scale);
+    
+    // Spider chelicerae (fangs)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x + 15 * scale, y + 17 * scale + bodyBob, 1 * scale, 3 * scale);
+    ctx.fillRect(x + 18 * scale, y + 17 * scale + bodyBob, 1 * scale, 3 * scale);
+    
+    // Spider legs - 8 legs total (4 on each side)
+    const legColors = isBoss ? '#4B0082' : '#1A1A1A';
+    ctx.fillStyle = legColors;
+    
+    // Left side legs (4 legs)
+    for (let i = 0; i < 4; i++) {
+        const legMovement = Math.sin(animTime * 0.01 + i * 0.5) * 1.5;
+        const legY = y + 10 * scale + i * 3 * scale + bodyBob;
+        
+        // Upper leg segment
+        ctx.fillRect(x + (2 + legMovement) * scale, legY, 6 * scale, 2 * scale);
+        // Lower leg segment (angled down)
+        ctx.fillRect(x + (1 + legMovement) * scale, legY + 2 * scale, 4 * scale, 2 * scale);
+        // Foot/tarsus
+        ctx.fillRect(x + legMovement * scale, legY + 4 * scale, 3 * scale, 1 * scale);
+    }
+    
+    // Right side legs (4 legs)
+    for (let i = 0; i < 4; i++) {
+        const legMovement = Math.sin(animTime * 0.01 + i * 0.5 + Math.PI) * 1.5;
+        const legY = y + 10 * scale + i * 3 * scale + bodyBob;
+        
+        // Upper leg segment
+        ctx.fillRect(x + (34 - legMovement) * scale, legY, 6 * scale, 2 * scale);
+        // Lower leg segment (angled down)
+        ctx.fillRect(x + (37 - legMovement) * scale, legY + 2 * scale, 4 * scale, 2 * scale);
+        // Foot/tarsus
+        ctx.fillRect(x + (39 - legMovement) * scale, legY + 4 * scale, 3 * scale, 1 * scale);
+    }
+    
+    // Pedipalps (smaller front appendages)
+    const palpMovement = Math.sin(animTime * 0.012) * 0.3;
+    ctx.fillStyle = isBoss ? '#663399' : '#404040';
+    ctx.fillRect(x + (10 + palpMovement) * scale, y + 15 * scale + bodyBob, 3 * scale, 1 * scale);
+    ctx.fillRect(x + (21 - palpMovement) * scale, y + 15 * scale + bodyBob, 3 * scale, 1 * scale);
+    
+    // Web silk strand (if spider is climbing/descending)
+    if (Math.sin(animTime * 0.005) > 0.7) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x + 18 * scale, y);
+        ctx.lineTo(x + 18 * scale, y + 8 * scale + bodyBob);
+        ctx.stroke();
+    }
+    
+    // Boss-specific effects
+    if (isBoss) {
+        // Venomous drip from fangs
+        const venomDrip = Math.sin(animTime * 0.009) * 2;
+        ctx.fillStyle = '#32CD32'; // Lime green venom
+        ctx.fillRect(x + 15 * scale, y + 20 * scale + bodyBob + venomDrip, 1 * scale, 2 * scale);
+        ctx.fillRect(x + 18 * scale, y + 20 * scale + bodyBob + venomDrip, 1 * scale, 2 * scale);
+        
+        // Mystical markings on abdomen
+        const markingGlow = 0.6 + Math.sin(animTime * 0.008) * 0.4;
+        ctx.fillStyle = `rgba(138, 43, 226, ${markingGlow})`;
+        // Hourglass-like marking
+        ctx.fillRect(x + 27 * scale, y + 12 * scale + bodyBob, 4 * scale, 2 * scale);
+        ctx.fillRect(x + 28 * scale, y + 14 * scale + bodyBob, 2 * scale, 2 * scale);
+        ctx.fillRect(x + 27 * scale, y + 16 * scale + bodyBob, 4 * scale, 2 * scale);
+    }
+    
+    // Subtle shadow effect under spider
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(x + 10 * scale, y + 22 * scale + bodyBob, 24 * scale, 2 * scale);
+}
+        
+        
+        
+        function drawWolf(x, y, isBoss = false, animTime = 0) {
+            const scale = isBoss ? 1.5 : 1;
+            const scaledWidth = 42 * scale;
+            const scaledHeight = 28 * scale;
+            
+            const prowl = Math.sin(animTime * 0.004) * 0.8;
+            const breathe = Math.sin(animTime * 0.005) * 0.3;
+            
+            if (isBoss) {
+                const gradient = ctx.createRadialGradient(
+                    x + scaledWidth/2, y + scaledHeight/2, 0,
+                    x + scaledWidth/2, y + scaledHeight/2, scaledWidth * 0.8
+                );
+                gradient.addColorStop(0, 'rgba(255, 0, 0, 0.6)');
+                gradient.addColorStop(0.5, 'rgba(139, 0, 0, 0.3)');
+                gradient.addColorStop(1, 'rgba(139, 0, 0, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x - 15, y - 15, scaledWidth + 30, scaledHeight + 30);
+            }
+            
+            ctx.fillStyle = isBoss ? '#4A4A4A' : '#696969';
+            ctx.fillRect(x + 8 * scale, y + 12 * scale + prowl + breathe, 26 * scale, 16 * scale);
+            ctx.fillRect(x, y + 8 * scale + prowl + breathe, 12 * scale, 12 * scale);
+            
+            const earTwitch = Math.sin(animTime * 0.012) * 0.5;
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(x + 2 * scale, y + 4 * scale + prowl + earTwitch, 3 * scale, 6 * scale);
+            ctx.fillRect(x + 7 * scale, y + 4 * scale + prowl - earTwitch, 3 * scale, 6 * scale);
+            
+            const eyeGlow = isBoss ? 1 : 0.8 + Math.sin(animTime * 0.006) * 0.2;
+            ctx.fillStyle = isBoss ? `rgba(255, 255, 0, ${eyeGlow})` : `rgba(255, 0, 0, ${eyeGlow})`;
+            ctx.fillRect(x + 3 * scale, y + 10 * scale + prowl + breathe, 2 * scale, 2 * scale);
+            ctx.fillRect(x + 7 * scale, y + 10 * scale + prowl + breathe, 2 * scale, 2 * scale);
+            
+            const legMove = Math.sin(animTime * 0.003) * 0.3;
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(x + 10 * scale + legMove, y + 26 * scale, 4 * scale, 8 * scale);
+            ctx.fillRect(x + 16 * scale - legMove, y + 26 * scale, 4 * scale, 8 * scale);
+            ctx.fillRect(x + 22 * scale + legMove, y + 26 * scale, 4 * scale, 8 * scale);
+            ctx.fillRect(x + 28 * scale - legMove, y + 26 * scale, 4 * scale, 8 * scale);
+            
+            const tailWag = Math.sin(animTime * 0.008) * 3;
+            ctx.fillStyle = isBoss ? '#4A4A4A' : '#696969';
+            ctx.fillRect(x + 34 * scale + tailWag, y + 14 * scale + prowl, 6 * scale, 3 * scale);
+            
+            if (isBoss || Math.sin(animTime * 0.004) > 0.6) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fillRect(x + 12 * scale, y + 13 * scale + prowl + breathe, 1, 2);
+                ctx.fillRect(x + 14 * scale, y + 12 * scale + prowl + breathe, 1, 3);
+            }
+            
+            if (isBoss) {
+                const crownGlow = 0.6 + Math.sin(animTime * 0.007) * 0.4;
+                ctx.fillStyle = `rgba(255, 215, 0, ${crownGlow})`;
+                ctx.fillRect(x + 3 * scale, y + 2 * scale + prowl, 2 * scale, 3 * scale);
+                ctx.fillRect(x + 6 * scale, y + 1 * scale + prowl, 2 * scale, 4 * scale);
+                ctx.fillRect(x + 9 * scale, y + 2 * scale + prowl, 2 * scale, 3 * scale);
+            }
+        }
+        
+        function drawSkeleton(x, y, animTime = 0) {
+            const rattle = Math.sin(animTime * 0.015) * 0.5;
+            const sway = Math.sin(animTime * 0.003) * 0.8;
+            const boneBobble = Math.sin(animTime * 0.01) * 0.3;
+            
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + 12 + sway, y + 8 + boneBobble, 16, 16);
+            
+            const eyeGlow = 0.6 + Math.sin(animTime * 0.008) * 0.4;
+            ctx.fillStyle = `rgba(255, 0, 0, ${eyeGlow})`;
+            ctx.fillRect(x + 16 + sway, y + 12 + boneBobble, 3, 3);
+            ctx.fillRect(x + 21 + sway, y + 12 + boneBobble, 3, 3);
+            
+            const jawChatter = Math.sin(animTime * 0.02) > 0.5 ? 1 : 0;
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + 14 + sway, y + 20 + boneBobble + jawChatter, 12, 4);
+            
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + 18 + sway + rattle, y + 24, 4, 20);
+            
+            for (let i = 0; i < 3; i++) {
+                const ribRattle = Math.sin(animTime * 0.012 + i * 0.5) * 0.3;
+                ctx.fillRect(x + 12 + sway + ribRattle, y + 28 + i * 4, 16, 2);
+            }
+            
+            const leftArmRattle = Math.sin(animTime * 0.014) * 0.8;
+            const rightArmRattle = Math.sin(animTime * 0.016) * 0.8;
+            
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + 8 + leftArmRattle, y + 30, 8, 4);
+            ctx.fillRect(x + 24 + rightArmRattle, y + 30, 8, 4);
+            ctx.fillRect(x + 6 + leftArmRattle, y + 32, 4, 8);
+            ctx.fillRect(x + 30 + rightArmRattle, y + 32, 4, 8);
+            
+            const leftLegRattle = Math.sin(animTime * 0.013) * 0.4;
+            const rightLegRattle = Math.sin(animTime * 0.017) * 0.4;
+            
+            ctx.fillStyle = '#F5F5DC';
+            ctx.fillRect(x + 14 + sway + leftLegRattle, y + 44, 4, 16);
+            ctx.fillRect(x + 22 + sway + rightLegRattle, y + 44, 4, 16);
+            
+            if (Math.sin(animTime * 0.009) > 0.7) {
+                ctx.fillStyle = 'rgba(245, 245, 220, 0.5)';
+                const dustX = x + 15 + sway + Math.sin(animTime * 0.02) * 3;
+                const dustY = y + 35 + Math.cos(animTime * 0.02) * 2;
+                ctx.fillRect(dustX, dustY, 1, 1);
+                ctx.fillRect(dustX + 3, dustY - 2, 1, 1);
+            }
+        }
+        
+        function drawBoltBox(x, y, animTime = 0) {
+            const float = Math.sin(animTime * 0.004) * 2.5;
+            const electricPulse = 0.5 + Math.sin(animTime * 0.008) * 0.5;
+            
+            const gradient = ctx.createRadialGradient(x + 12, y + 8 + float, 0, x + 12, y + 8 + float, 35);
+            gradient.addColorStop(0, `rgba(0, 255, 255, ${electricPulse})`);
+            gradient.addColorStop(0.5, `rgba(0, 255, 255, ${electricPulse * 0.6})`);
+            gradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x - 15, y - 15 + float, 54, 46);
+            
+            const electricShake = Math.sin(animTime * 0.025) * 0.2;
+            ctx.fillStyle = '#2F2F2F';
+            ctx.fillRect(x + electricShake, y + float, 24, 16);
+            
+            ctx.fillStyle = '#4A4A4A';
+            ctx.fillRect(x + 2 + electricShake, y + 2 + float, 20, 2);
+            ctx.fillRect(x + 2 + electricShake, y + 2 + float, 2, 12);
+            
+            ctx.fillStyle = '#1A1A1A';
+            ctx.fillRect(x + 20 + electricShake, y + 4 + float, 4, 12);
+            ctx.fillRect(x + 4 + electricShake, y + 12 + float, 20, 4);
+            
+            const boltGlow = 0.8 + Math.sin(animTime * 0.01) * 0.2;
+            ctx.fillStyle = `rgba(0, 255, 255, ${boltGlow})`;
+            ctx.fillRect(x + 10 + electricShake, y + 6 + float, 2, 4);
+            ctx.fillRect(x + 8 + electricShake, y + 7 + float, 6, 2);
+            ctx.fillRect(x + 12 + electricShake, y + 8 + float, 4, 2);
+            
+            ctx.fillStyle = `rgba(255, 255, 0, ${electricPulse})`;
+            const spark1X = x + 12 + Math.sin(animTime * 0.02) * 4;
+            const spark1Y = y + 8 + float + Math.cos(animTime * 0.02) * 3;
+            const spark2X = x + 16 + Math.sin(animTime * 0.018) * 3;
+            const spark2Y = y + 6 + float + Math.cos(animTime * 0.022) * 4;
+            
+            ctx.fillRect(spark1X, spark1Y, 1, 1);
+            ctx.fillRect(spark2X, spark2Y, 1, 1);
+            
+            if (Math.sin(animTime * 0.015) > 0.6) {
+                ctx.strokeStyle = `rgba(0, 255, 255, ${electricPulse * 0.8})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + 8, y + 4 + float);
+                ctx.lineTo(x + 18 + Math.sin(animTime * 0.03) * 2, y + 10 + float);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(x + 20, y + 6 + float);
+                ctx.lineTo(x + 14 + Math.cos(animTime * 0.025) * 2, y + 12 + float);
+                ctx.stroke();
+            }
+            
+            if (Math.sin(animTime * 0.012) > 0.4) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(x + 11 + electricShake, y + 7 + float, 2, 2);
+            }
+        }
+
+        function drawBullet(x, y, enhanced = false) {
+            if (currentTheme === 'cowboy') {
+                ctx.fillStyle = enhanced ? '#FF4500' : '#FFD700';
+                ctx.fillRect(x, y, 8, 4);
+            } else {
+                // Shadow energy bullets - match hand energy core colors
+                ctx.fillStyle = enhanced ? '#FF4500' : '#00FFFF';
+                ctx.fillRect(x, y, 8, 2);
+                ctx.fillRect(x + 2, y - 1, 4, 4);
+                
+                // Add energy glow effect
+                const glowAlpha = 0.4 + Math.sin(Date.now() * 0.02 + x * 0.1) * 0.2;
+                ctx.fillStyle = enhanced ? `rgba(255, 69, 0, ${glowAlpha})` : `rgba(0, 255, 255, ${glowAlpha})`;
+                ctx.fillRect(x - 1, y - 1, 10, 4);
+            }
+        }
+
+        function drawExplosion(x, y, frame) {
+            const colors = currentTheme === 'Dungeon' ? 
+                ['#00FFFF', '#87CEEB', '#FFFF00', '#FF4500'] :
+                ['#FF4500', '#FF6347', '#FFD700', '#FFA500'];
+            const maxFrame = 15;
+            const size = (frame / maxFrame) * 20 + 10;
+            
+            ctx.fillStyle = colors[Math.floor(frame / 4) % colors.length];
+            
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const particleX = x + Math.cos(angle) * size;
+                const particleY = y + Math.sin(angle) * size;
+                ctx.fillRect(particleX, particleY, 4, 4);
+            }
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x - 2, y - 2, 4, 4);
+        }
+
+        function drawEnvironmentElement(element) {
+            if (element.type === 'cloud') {
+                drawCloud(element.x, element.y, element.width);
+            } else if (element.type === 'torch') {
+                drawTorch(element.x, element.y, element.flicker);
+            }
+        }
+
+        function drawCloud(x, y, width) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(x, y, width/4, 0, Math.PI * 2);
+            ctx.arc(x + width/3, y, width/3, 0, Math.PI * 2);
+            ctx.arc(x + width/2, y, width/4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawTorch(x, y, flicker) {
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x, y + 15, 4, 25);
+            
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(x - 2, y + 10, 8, 8);
+            
+            const flameHeight = 12 + Math.sin(flicker) * 3;
+            ctx.fillStyle = '#FF4500';
+            ctx.fillRect(x, y + 2, 4, flameHeight);
+            
+            ctx.fillStyle = '#FFFF00';
+            ctx.fillRect(x + 1, y + 4, 2, flameHeight - 4);
+        }
+
+        function drawEffects() {
+            // Draw blood particles
+            for (const particle of bloodParticles) {
+                const alpha = particle.life / particle.maxLife;
+                ctx.fillStyle = `rgba(139, 0, 0, ${alpha})`;
+                ctx.fillRect(particle.x, particle.y, 3, 3);
+            }
+
+            // Draw lightning effects
+            for (const effect of lightningEffects) {
+                const alpha = effect.life / effect.maxLife;
+                ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+                ctx.lineWidth = 2;
+                
+                for (let i = 0; i < effect.branches; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(effect.x, effect.y);
+                    
+                    const endX = effect.x + (Math.random() - 0.5) * 40;
+                    const endY = effect.y + (Math.random() - 0.5) * 40;
+                    
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw score popups
+            for (const popup of scorePopups) {
+                const alpha = popup.life / popup.maxLife;
+                const color = currentTheme === 'Dungeon' ? 
+                    `rgba(255, 255, 0, ${alpha})` : 
+                    `rgba(255, 215, 0, ${alpha})`;
+                ctx.fillStyle = color;
+                ctx.font = '16px Inter';
+                ctx.fillText(`+${popup.points}`, popup.x, popup.y);
+            }
+
+            // Draw double jump particles
+            for (const particle of doubleJumpParticles) {
+                const alpha = particle.life / particle.maxLife;
+                
+                if (currentTheme === 'cowboy') {
+                    // Dust particles - brown/tan color
+                    ctx.fillStyle = `rgba(210, 180, 140, ${alpha * 0.8})`;
+                } else {
+                    // Shadow energy particles - purple/dark blue
+                    ctx.fillStyle = `rgba(138, 43, 226, ${alpha * 0.9})`;
+                }
+                
+                ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+            }
+        }
+        
+        
+        
+        
+
+        // Main Render Function
+        function render() {
+            if (!needsRedraw && gameState === GameState.PLAYING) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw environment elements
+            for (const element of environmentElements) {
+                drawEnvironmentElement(element);
+            }
+            
+            // Draw ground
+            const theme = gameCache.getTheme();
+            ctx.fillStyle = theme.groundColor;
+            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+            
+            // Floor details
+            ctx.fillStyle = theme.floorDetailColor;
+            for (let x = 0; x < canvas.width; x += 25) {
+                if (currentTheme === 'cowboy') {
+                    ctx.fillRect(x, groundY + 12, 12, 3);
+                    ctx.fillRect(x + 6, groundY + 25, 10, 2);
+                } else {
+                    ctx.fillRect(x, groundY + 10, 30, 3);
+                    ctx.fillRect(x + 6, groundY + 25, 25, 2);
+                }
+            }
+            
+            // Draw player
+            const isDead = lives <= 0;
+            drawPlayer(player.x, player.y, player.facingDirection === -1, isDead);
+            
+            // Draw obstacles
+            for (const obstacle of obstacles) {
+                drawObstacle(obstacle);
+                
+                // Health bars for multi-hit enemies
+                if (obstacle.health > 1 && obstacle.type !== 'bulletBox' && obstacle.type !== 'boltBox') {
+                    const barWidth = obstacle.width;
+                    const barHeight = 4;
+                    const healthPercent = obstacle.health / obstacle.maxHealth;
+                    
+                    ctx.fillStyle = '#8B0000';
+                    ctx.fillRect(obstacle.x, obstacle.y - 8, barWidth, barHeight);
+                    
+                    const healthColor = (obstacle.type === 'boss' || obstacle.type === 'alphaWolf') ? '#FFFF00' : '#00FF00';
+                    ctx.fillStyle = healthColor;
+                    ctx.fillRect(obstacle.x, obstacle.y - 8, barWidth * healthPercent, barHeight);
+                }
+            }
+            
+            // Draw bullets
+            for (const bullet of bulletsFired) {
+                drawBullet(bullet.x, bullet.y, bullet.enhanced);
+            }
+            
+            // Draw explosions
+            for (const explosion of explosions) {
+                drawExplosion(explosion.x, explosion.y, explosion.frame);
+            }
+            
+            // Draw all effects
+            drawEffects();
+            
+            needsRedraw = false;
+        }
+
+        // Main Update Function
+        function update() {
+            if (!gameRunning) return;
+            
+            updatePlayer();
+            spawnObstacle();
+            updateObstacles();
+            updateBullets();
+            updateExplosions();
+            updateEnvironmentElements();
+            updateEffects();
+            checkCollisions();
+            checkLevelComplete();
+            
+            render();
+            updateUI();
+            needsRedraw = true;
+        }
+
+        // Event Handlers
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Escape') {
+                e.preventDefault();
+                if (gameState === GameState.PLAYING) {
+                    pauseGame();
+                } else if (gameState === GameState.PAUSED) {
+                    resumeGame();
+                }
+                return;
+            }
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                keys.space = true;
+                startJump();
+            }
+            if (e.code === 'KeyS') {
+                e.preventDefault();
+                if (!keys.s) {
+                    keys.s = true;
+                    shoot();
+                }
+            }
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+                e.preventDefault();
+                keys.left = true;
+            }
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+                e.preventDefault();
+                keys.right = true;
+            }
+        });
+
+        document.addEventListener('keyup', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                keys.space = false;
+                stopJump();
+            }
+            if (e.code === 'KeyS') {
+                e.preventDefault();
+                keys.s = false;
+            }
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+                e.preventDefault();
+                keys.left = false;
+            }
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+                e.preventDefault();
+                keys.right = false;
+            }
+        });
+        
+        
+ // URL Parameter handling for direct theme selection
+function checkURLParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const theme = urlParams.get('theme');
+    
+    if (theme === 'cowboy' || theme === 'dungeon') {
+        // Auto-select theme and go to start screen
+        currentTheme = theme === 'dungeon' ? 'Dungeon' : 'cowboy'; // Fix: Map 'dungeon' to 'Dungeon'
+        gameCache.invalidate();
+        applyTheme();
+        gameState = GameState.START;
+        loadHighScore();
+        hideAllScreens();
+        showScreen('startScreen');
+        
+        // Optional: Auto-start the game if 'autostart=true' parameter is present
+        const autostart = urlParams.get('autostart');
+        if (autostart === 'true') {
+            setTimeout(() => {
+                startGame();
+            }, 500); // Small delay to let the UI update
+        }
+    }
+}
+
+// Check URL parameters on page load
+checkURLParameters();
+        
+
+        // Initialize menu rendering
+        function menuRender() {
+            if (gameState !== GameState.PLAYING) {
+                if (currentTheme && gameState !== GameState.THEME_SELECTION) {
+                    render();
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            requestAnimationFrame(menuRender);
+        }
+
+        // Initialize the game
+        menuRender();
+
+        // Cleanup function for memory management
+        window.addEventListener('beforeunload', function() {
+            if (gameLoop) {
+                clearInterval(gameLoop);
+            }
+            clearArrays();
+            gameCache.invalidate();
+        });
+
+        // Initialize with optimized settings
+        console.log('Runner V.073 - Optimized Edition loaded successfully!');
+        console.log('Performance improvements:');
+        console.log('- Consolidated CSS classes');
+        console.log('- Implemented caching system');
+        console.log('- Optimized update loops');
+        console.log('- Memory leak prevention');
+        console.log('- Debounced input handling');
+        console.log('- Post-Damage Invulnerability added');
+        console.log('- Animated obstacles added');
+    </script>
+</body>
+</html>
